@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-        Title="Settings"
+        Title="設定"
         Height="520" Width="500"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
@@ -22,7 +22,7 @@
 
         <!-- Title -->
         <TextBlock Grid.Row="0"
-                   Text="Settings"
+                   Text="設定"
                    Style="{StaticResource MaterialDesignHeadline6TextBlock}"
                    Margin="0,0,0,16"/>
 
@@ -35,25 +35,25 @@
 
             <TextBox Grid.Column="0"
                      x:Name="GamePathTextBox"
-                     materialDesign:HintAssist.Hint="Game Path"
+                     materialDesign:HintAssist.Hint="遊戲路徑"
                      Style="{StaticResource MaterialDesignOutlinedTextBox}"
                      Margin="0,0,8,0"/>
 
             <Button Grid.Column="1"
-                    Content="Browse"
+                    Content="瀏覽"
                     Click="BrowseButton_Click"
                     Style="{StaticResource MaterialDesignOutlinedButton}"/>
         </Grid>
 
         <!-- Dalamud Section -->
         <TextBlock Grid.Row="2"
-                   Text="Dalamud (Plugins)"
+                   Text="Dalamud (插件)"
                    Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
                    Margin="0,24,0,8"/>
 
         <StackPanel Grid.Row="3" Orientation="Vertical">
             <CheckBox x:Name="EnableDalamudCheckBox"
-                      Content="Enable Dalamud"
+                      Content="啟用 Dalamud"
                       Style="{StaticResource MaterialDesignCheckBox}"
                       Margin="0,0,0,8"/>
 
@@ -65,20 +65,20 @@
                 </Grid.ColumnDefinitions>
 
                 <TextBlock Grid.Column="0"
-                           Text="Injection Delay (ms):"
+                           Text="注入延遲 (毫秒)："
                            VerticalAlignment="Center"
                            Margin="0,0,8,0"/>
 
                 <TextBox Grid.Column="1"
                          x:Name="InjectionDelayTextBox"
                          Text="0"
-                         materialDesign:HintAssist.Hint="Delay"
+                         materialDesign:HintAssist.Hint="延遲"
                          Style="{StaticResource MaterialDesignOutlinedTextBox}"
                          PreviewTextInput="InjectionDelayTextBox_PreviewTextInput"/>
             </Grid>
 
             <!-- Local Dalamud Path (required for Taiwan version) -->
-            <TextBlock Text="Local Dalamud Path"
+            <TextBlock Text="本地 Dalamud 路徑"
                        Style="{StaticResource MaterialDesignBody2TextBlock}"
                        Margin="0,16,0,4"/>
 
@@ -90,18 +90,18 @@
 
                 <TextBox Grid.Column="0"
                          x:Name="LocalDalamudPathTextBox"
-                         materialDesign:HintAssist.Hint="Dalamud Build Path"
+                         materialDesign:HintAssist.Hint="Dalamud 建置路徑"
                          Style="{StaticResource MaterialDesignOutlinedTextBox}"
                          IsReadOnly="True"
                          Margin="0,0,8,0"/>
 
                 <Button Grid.Column="1"
-                        Content="Browse"
+                        Content="瀏覽"
                         Click="BrowseLocalDalamud_Click"
                         Style="{StaticResource MaterialDesignOutlinedButton}"/>
             </Grid>
 
-            <TextBlock Text="Path to folder containing Dalamud.Injector.exe (台版需要自行編譯的 Dalamud)"
+            <TextBlock Text="包含 Dalamud.Injector.exe 的資料夾路徑 (台版需要自行編譯的 Dalamud)"
                        FontSize="11"
                        Foreground="Gray"
                        Margin="0,4,0,0"/>
@@ -109,13 +109,13 @@
 
         <!-- Buttons -->
         <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Content="Save"
+            <Button Content="儲存"
                     Click="SaveButton_Click"
                     Style="{StaticResource MaterialDesignRaisedButton}"
                     Width="80"
                     Margin="0,0,8,0"/>
 
-            <Button Content="Cancel"
+            <Button Content="取消"
                     Click="CancelButton_Click"
                     Style="{StaticResource MaterialDesignOutlinedButton}"
                     Width="80"/>

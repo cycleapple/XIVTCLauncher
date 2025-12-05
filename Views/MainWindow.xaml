@@ -30,14 +30,14 @@
 
         <!-- Title -->
         <TextBlock Grid.Row="0"
-                   Text="FFXIV Simple Launcher"
+                   Text="FFXIV 簡易啟動器"
                    Style="{StaticResource MaterialDesignHeadline5TextBlock}"
                    HorizontalAlignment="Center"
                    Margin="0,0,0,16"/>
 
         <!-- Subtitle -->
         <TextBlock Grid.Row="1"
-                   Text="Taiwan Version"
+                   Text="台灣版"
                    Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
                    HorizontalAlignment="Center"
                    Foreground="{DynamicResource MaterialDesignBodyLight}"
@@ -46,7 +46,7 @@
         <!-- Buttons -->
         <StackPanel Grid.Row="3" Orientation="Vertical" HorizontalAlignment="Center">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                <Button Content="Login"
+                <Button Content="登入"
                         Command="{Binding LoginCommand}"
                         Style="{StaticResource MaterialDesignRaisedButton}"
                         Width="140"
@@ -54,7 +54,7 @@
                         FontSize="16"
                         Margin="0,0,16,0"/>
 
-                <Button Content="Settings"
+                <Button Content="設定"
                         Command="{Binding OpenSettingsCommand}"
                         Style="{StaticResource MaterialDesignOutlinedButton}"
                         Width="140"
@@ -62,14 +62,14 @@
                         FontSize="16"/>
             </StackPanel>
 
-            <Button Content="Test Inject (Skip Login)"
+            <Button Content="測試注入 (跳過登入)"
                     Command="{Binding TestInjectCommand}"
                     Style="{StaticResource MaterialDesignFlatButton}"
                     Foreground="Orange"
                     Height="32"
                     FontSize="12"
                     Margin="0,12,0,0"
-                    ToolTip="Launch game with fake session to test Dalamud injection (will disconnect at lobby)"/>
+                    ToolTip="以假的 Session 啟動遊戲來測試 Dalamud 注入 (會在大廳斷線)"/>
         </StackPanel>
 
         <!-- Status Message with Scroll -->
