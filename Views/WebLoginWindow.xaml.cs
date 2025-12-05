@@ -201,7 +201,7 @@ public partial class WebLoginWindow : Window
             {
                 if (e.IsSuccess)
                 {
-                    StatusText.Text = "Ready - Please login";
+                    StatusText.Text = "就緒 - 請登入";
 
                     // Auto-fill saved credentials
                     if (!string.IsNullOrEmpty(_savedEmail))
@@ -214,22 +214,22 @@ public partial class WebLoginWindow : Window
                             document.getElementById('rememberMe').checked = true;
                         ";
                         await WebView.CoreWebView2.ExecuteScriptAsync(script);
-                        StatusText.Text = "Credentials loaded - Please login";
+                        StatusText.Text = "已載入帳號資料 - 請登入";
                     }
                 }
                 else
                 {
-                    StatusText.Text = $"Navigation failed: {e.WebErrorStatus}";
+                    StatusText.Text = $"導覽失敗: {e.WebErrorStatus}";
                 }
             };
 
-            StatusText.Text = "Ready - Please login";
+            StatusText.Text = "就緒 - 請登入";
         }
         catch (Exception ex)
         {
-            StatusText.Text = $"WebView2 Error: {ex.Message}";
-            MessageBox.Show($"Failed to initialize WebView2: {ex.Message}\n\nPlease ensure WebView2 Runtime is installed.",
-                "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            StatusText.Text = $"WebView2 錯誤: {ex.Message}";
+            MessageBox.Show($"初始化 WebView2 失敗: {ex.Message}\n\n請確認已安裝 WebView2 Runtime。",
+                "錯誤", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 
@@ -246,12 +246,12 @@ public partial class WebLoginWindow : Window
 <html>
 <head>
     <meta charset='utf-8'>
-    <title>FFXIV Login</title>
+    <title>FFXIV 登入</title>
     <script src='https://www.google.com/recaptcha/enterprise.js?render=6Ld6VmorAAAAANQdQeqkaOeScR42qHC7Hyalq00r'></script>
     <style>
         * { box-sizing: border-box; }
         body {
-            font-family: 'Segoe UI', Arial, sans-serif;
+            font-family: 'Microsoft JhengHei', 'Segoe UI', Arial, sans-serif;
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             margin: 0; padding: 20px;
             min-height: 100vh;
@@ -331,22 +331,22 @@ public partial class WebLoginWindow : Window
         <h1>FINAL FANTASY XIV</h1>
         <form id='loginForm'>
             <div class='form-group'>
-                <label>Email</label>
+                <label>電子郵件</label>
                 <input type='email' id='email' placeholder='your@email.com' required>
             </div>
             <div class='form-group'>
-                <label>Password</label>
-                <input type='password' id='password' placeholder='Password' required>
+                <label>密碼</label>
+                <input type='password' id='password' placeholder='請輸入密碼' required>
             </div>
             <div class='form-group'>
-                <label>OTP Code (if enabled)</label>
-                <input type='text' id='otp' placeholder='6-digit code (optional)' maxlength='6'>
+                <label>OTP 驗證碼 (如有啟用)</label>
+                <input type='text' id='otp' placeholder='6 位數驗證碼 (選填)' maxlength='6'>
             </div>
             <div class='form-group' style='display:flex;align-items:center;'>
                 <input type='checkbox' id='rememberMe' style='width:auto;margin-right:8px;'>
-                <label for='rememberMe' style='margin:0;cursor:pointer;'>Remember account</label>
+                <label for='rememberMe' style='margin:0;cursor:pointer;'>記住帳號</label>
             </div>
-            <button type='submit' id='submitBtn'>Login</button>
+            <button type='submit' id='submitBtn'>登入</button>
         </form>
         <div id='status' class='status' style='display:none;'></div>
     </div>
@@ -364,13 +364,13 @@ public partial class WebLoginWindow : Window
             e.preventDefault();
             const btn = document.getElementById('submitBtn');
             btn.disabled = true;
-            btn.textContent = 'Logging in...';
-            showStatus('Getting reCAPTCHA token...', 'info');
+            btn.textContent = '登入中...';
+            showStatus('正在取得 reCAPTCHA 驗證...', 'info');
 
             try {
                 // Use reCAPTCHA Enterprise API
                 const token = await grecaptcha.enterprise.execute(RECAPTCHA_SITE_KEY, {action: 'LOGIN'});
-                showStatus('Authenticating via C# bridge...', 'info');
+                showStatus('正在驗證帳號...', 'info');
 
                 const email = document.getElementById('email').value;
                 const password = document.getElementById('password').value;
@@ -383,17 +383,17 @@ public partial class WebLoginWindow : Window
 
                 const data = JSON.parse(result);
                 if (data.success) {
-                    showStatus('Login successful! Session: ' + data.sessionId, 'success');
+                    showStatus('登入成功！Session: ' + data.sessionId, 'success');
                 } else if (data.error) {
-                    showStatus('Error: ' + data.error, 'error');
+                    showStatus('錯誤: ' + data.error, 'error');
                 } else {
-                    showStatus('Login failed: ' + result, 'error');
+                    showStatus('登入失敗: ' + result, 'error');
                 }
             } catch (err) {
-                showStatus('Error: ' + err.message, 'error');
+                showStatus('錯誤: ' + err.message, 'error');
             } finally {
                 btn.disabled = false;
-                btn.textContent = 'Login';
+                btn.textContent = '登入';
             }
         });
     </script>
