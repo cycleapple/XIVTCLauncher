@@ -1,0 +1,195 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:XIVTCLauncher.Avalonia.ViewModels"
+        mc:Ignorable="d" d:DesignWidth="520" d:DesignHeight="680"
+        x:Class="XIVTCLauncher.Avalonia.Views.SettingsWindow"
+        x:DataType="vm:SettingsViewModel"
+        Title="設定"
+        Width="520" Height="680"
+        MinWidth="400" MinHeight="500"
+        WindowStartupLocation="CenterOwner"
+        CanResize="True">
+
+    <Design.DataContext>
+        <vm:SettingsViewModel />
+    </Design.DataContext>
+
+    <ScrollViewer>
+        <Grid Margin="24">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Title -->
+            <TextBlock Grid.Row="0"
+                       Text="設定"
+                       FontSize="20"
+                       FontWeight="Bold"
+                       Margin="0,0,0,16"/>
+
+            <!-- Game Path -->
+            <StackPanel Grid.Row="1" Spacing="8">
+                <TextBlock Text="遊戲路徑" FontWeight="Medium"/>
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                    <TextBox Grid.Column="0"
+                             Text="{Binding GamePath}"
+                             Watermark="遊戲安裝資料夾路徑"/>
+                    <Button Grid.Column="1"
+                            Content="瀏覽"
+                            Command="{Binding BrowseGamePathCommand}"/>
+                </Grid>
+            </StackPanel>
+
+            <!-- OTP Section -->
+            <TextBlock Grid.Row="2"
+                       Text="自動 OTP (一次性密碼)"
+                       FontSize="16"
+                       FontWeight="Medium"
+                       Margin="0,24,0,8"/>
+
+            <StackPanel Grid.Row="3" Spacing="8">
+                <CheckBox Content="啟用自動 OTP"
+                          IsChecked="{Binding AutoOtp}"/>
+
+                <TextBlock Text="啟用後登入時會自動填入 OTP 驗證碼"
+                           FontSize="11"
+                           Opacity="0.7"/>
+
+                <!-- OTP Secret Input -->
+                <StackPanel Spacing="8" IsEnabled="{Binding AutoOtp}">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                        <TextBox Grid.Column="0"
+                                 Text="{Binding OtpSecretDisplay}"
+                                 Watermark="OTP 密鑰 (Base32)"
+                                 IsReadOnly="{Binding IsOtpSecretReadOnly}"/>
+                        <Button Grid.Column="1"
+                                Content="儲存密鑰"
+                                Command="{Binding SaveOtpSecretCommand}"/>
+                    </Grid>
+
+                    <!-- Current OTP Display -->
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="8"
+                                IsVisible="{Binding AutoOtp}">
+                        <TextBlock Text="目前 OTP："
+                                   VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding CurrentOtpCode}"
+                                   FontFamily="Consolas"
+                                   FontSize="18"
+                                   FontWeight="Bold"
+                                   VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding OtpCountdown}"
+                                   FontSize="12"
+                                   Opacity="0.7"
+                                   VerticalAlignment="Center"/>
+                        <Button Content="清除密鑰"
+                                Command="{Binding ClearOtpSecretCommand}"
+                                Foreground="OrangeRed"
+                                IsVisible="{Binding IsOtpConfigured}"/>
+                    </StackPanel>
+
+                    <TextBlock Text="密鑰可從 SE 帳號設定的 OTP 頁面取得 (顯示為 QR Code 下方的文字)"
+                               FontSize="11"
+                               Opacity="0.7"
+                               TextWrapping="Wrap"/>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Dalamud Section -->
+            <TextBlock Grid.Row="4"
+                       Text="Dalamud (插件系統)"
+                       FontSize="16"
+                       FontWeight="Medium"
+                       Margin="0,24,0,8"/>
+
+            <StackPanel Grid.Row="5" Spacing="12">
+                <CheckBox Content="啟用 Dalamud"
+                          IsChecked="{Binding EnableDalamud}"/>
+
+                <!-- Dalamud Source Mode -->
+                <StackPanel Spacing="12" IsEnabled="{Binding EnableDalamud}">
+                    <TextBlock Text="Dalamud 來源"
+                               FontWeight="Medium"/>
+
+                    <!-- Auto Download Option -->
+                    <RadioButton Content="自動下載 (推薦)"
+                                 IsChecked="{Binding IsAutoDownloadMode}">
+                        <RadioButton.Styles>
+                            <Style Selector="RadioButton">
+                                <Setter Property="Margin" Value="0,0,0,4"/>
+                            </Style>
+                        </RadioButton.Styles>
+                    </RadioButton>
+                    <TextBlock Text="自動從 yanmucorp/Dalamud 下載最新版本"
+                               FontSize="11"
+                               Opacity="0.7"
+                               Margin="24,0,0,8"/>
+
+                    <!-- Local Path Option -->
+                    <RadioButton Content="手動指定路徑"
+                                 IsChecked="{Binding IsLocalPathMode}"/>
+                    <TextBlock Text="使用本地已編譯的 Dalamud"
+                               FontSize="11"
+                               Opacity="0.7"
+                               Margin="24,0,0,8"/>
+
+                    <!-- Local Path Selection -->
+                    <Grid ColumnDefinitions="*,Auto"
+                          ColumnSpacing="8"
+                          Margin="24,0,0,0"
+                          IsVisible="{Binding IsLocalPathMode}">
+                        <TextBox Grid.Column="0"
+                                 Text="{Binding LocalDalamudPath}"
+                                 Watermark="Dalamud 資料夾路徑"
+                                 IsReadOnly="True"/>
+                        <Button Grid.Column="1"
+                                Content="瀏覽"
+                                Command="{Binding BrowseLocalDalamudCommand}"/>
+                    </Grid>
+
+                    <!-- Injection Delay -->
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="注入延遲 (毫秒)："/>
+                        <NumericUpDown Value="{Binding InjectionDelay}"
+                                       Minimum="0"
+                                       Maximum="30000"
+                                       Increment="100"
+                                       FormatString="0"
+                                       Width="150"
+                                       HorizontalAlignment="Left"/>
+                    </StackPanel>
+
+                    <!-- Info text -->
+                    <TextBlock Text="Dalamud 和 .NET Runtime 會在登入時自動下載/更新"
+                               FontSize="11"
+                               Opacity="0.7"
+                               IsVisible="{Binding IsAutoDownloadMode}"/>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Buttons -->
+            <StackPanel Grid.Row="7"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Right"
+                        Spacing="8"
+                        Margin="0,24,0,0">
+                <Button Content="儲存"
+                        Name="SaveButton"
+                        Classes="accent"
+                        Width="80"/>
+                <Button Content="取消"
+                        Name="CancelButton"
+                        Width="80"/>
+            </StackPanel>
+        </Grid>
+    </ScrollViewer>
+</Window>
