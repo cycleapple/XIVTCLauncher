@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.1.3" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.1.3" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.1.3" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.1.3" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="11.1.3" />
+    <PackageReference Include="MessageBox.Avalonia" Version="3.1.6" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="SevenZipExtractor" Version="1.0.17" />
+  </ItemGroup>
+
+  <!-- Link to shared code from WPF project -->
+  <ItemGroup>
+    <Compile Include="..\XIVTCLauncher\Models\**\*.cs" LinkBase="Models" />
+    <Compile Include="..\XIVTCLauncher\Services\**\*.cs" Exclude="..\XIVTCLauncher\Services\CredentialService.cs" LinkBase="Services" />
+    <Compile Include="..\XIVTCLauncher\Dalamud\**\*.cs" LinkBase="Dalamud" />
+    <Compile Include="..\XIVTCLauncher\Converters\**\*.cs" LinkBase="Converters" />
+  </ItemGroup>
+
+</Project>
