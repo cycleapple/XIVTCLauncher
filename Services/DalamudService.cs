@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Json;
 using FFXIVSimpleLauncher.Dalamud;
 using FFXIVSimpleLauncher.Models;
+using FFXIVSimpleLauncher.Services.Platform;
 
 namespace FFXIVSimpleLauncher.Services;
 
@@ -68,8 +69,8 @@ public class DalamudService
 
     public DalamudService()
     {
-        var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var baseDir = Path.Combine(appDataPath, "FFXIVSimpleLauncher", "Dalamud");
+        var platformPaths = PlatformServiceFactory.GetPlatformPaths();
+        var baseDir = platformPaths.GetDalamudBasePath();
 
         _baseDirectory = new DirectoryInfo(baseDir);
         _configDirectory = new DirectoryInfo(Path.Combine(baseDir, "Config"));
@@ -487,36 +488,58 @@ public class DalamudService
             return _runtimeDirectory.FullName;
         }
 
-        // Fallback: XIVLauncherCN
-        var xivLauncherCNRuntime = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "XIVLauncherCN", "runtime");
-        if (Directory.Exists(xivLauncherCNRuntime) && ValidateRuntimeDirectory(xivLauncherCNRuntime))
+        // Fallback: XIVLauncherCN (Windows only)
+        if (PlatformServiceFactory.CurrentPlatform == PlatformType.Windows)
         {
-            ReportStatus($"使用 XIVLauncherCN .NET Runtime: {xivLauncherCNRuntime}");
-            LogRuntimeDetails(xivLauncherCNRuntime);
-            return xivLauncherCNRuntime;
-        }
+            var xivLauncherCNRuntime = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "XIVLauncherCN", "runtime");
+            if (Directory.Exists(xivLauncherCNRuntime) && ValidateRuntimeDirectory(xivLauncherCNRuntime))
+            {
+                ReportStatus($"使用 XIVLauncherCN .NET Runtime: {xivLauncherCNRuntime}");
+                LogRuntimeDetails(xivLauncherCNRuntime);
+                return xivLauncherCNRuntime;
+            }
 
-        // Fallback: XIVLauncher
-        var xivLauncherRuntime = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "XIVLauncher", "runtime");
-        if (Directory.Exists(xivLauncherRuntime) && ValidateRuntimeDirectory(xivLauncherRuntime))
-        {
-            ReportStatus($"使用 XIVLauncher .NET Runtime: {xivLauncherRuntime}");
-            LogRuntimeDetails(xivLauncherRuntime);
-            return xivLauncherRuntime;
-        }
+            // Fallback: XIVLauncher
+            var xivLauncherRuntime = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "XIVLauncher", "runtime");
+            if (Directory.Exists(xivLauncherRuntime) && ValidateRuntimeDirectory(xivLauncherRuntime))
+            {
+                ReportStatus($"使用 XIVLauncher .NET Runtime: {xivLauncherRuntime}");
+                LogRuntimeDetails(xivLauncherRuntime);
+                return xivLauncherRuntime;
+            }
 
-        // Fallback: system .NET
-        var programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
-        var systemDotNet = Path.Combine(programFiles, "dotnet");
-        if (Directory.Exists(systemDotNet) && ValidateRuntimeDirectory(systemDotNet))
+            // Fallback: system .NET
+            var programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+            var systemDotNet = Path.Combine(programFiles, "dotnet");
+            if (Directory.Exists(systemDotNet) && ValidateRuntimeDirectory(systemDotNet))
+            {
+                ReportStatus($"使用系統 .NET Runtime: {systemDotNet}");
+                LogRuntimeDetails(systemDotNet);
+                return systemDotNet;
+            }
+        }
+        else if (PlatformServiceFactory.CurrentPlatform == PlatformType.MacOS)
         {
-            ReportStatus($"使用系統 .NET Runtime: {systemDotNet}");
-            LogRuntimeDetails(systemDotNet);
-            return systemDotNet;
+            // macOS: check common .NET installation paths
+            var homebrewDotNet = "/usr/local/share/dotnet";
+            if (Directory.Exists(homebrewDotNet) && ValidateRuntimeDirectory(homebrewDotNet))
+            {
+                ReportStatus($"使用 Homebrew .NET Runtime: {homebrewDotNet}");
+                LogRuntimeDetails(homebrewDotNet);
+                return homebrewDotNet;
+            }
+
+            var optDotNet = "/opt/homebrew/opt/dotnet/libexec";
+            if (Directory.Exists(optDotNet) && ValidateRuntimeDirectory(optDotNet))
+            {
+                ReportStatus($"使用 Homebrew .NET Runtime: {optDotNet}");
+                LogRuntimeDetails(optDotNet);
+                return optDotNet;
+            }
         }
 
         ReportStatus("警告: 找不到有效的 .NET Runtime！");

@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json.Serialization;
+using FFXIVSimpleLauncher.Services.Platform;
 
 namespace FFXIVSimpleLauncher.Services;
 
@@ -155,34 +156,8 @@ public class LoginService
 
     public void LaunchGame(string gamePath, string sessionId)
     {
-        var exePath = Path.Combine(gamePath, "game", "ffxiv_dx11.exe");
-        var workingDir = Path.Combine(gamePath, "game");
-
-        if (!File.Exists(exePath))
-        {
-            throw new FileNotFoundException($"Game executable not found: {exePath}");
-        }
-
-        // Taiwan version launch arguments - extracted from official launcher
-        // DEV.LobbyHost01=neolobby01.ffxiv.com.tw DEV.LobbyPort01=54994
-        // DEV.GMServerHost=frontier.ffxiv.com.tw DEV.TestSID=%SESSION%
-        // SYS.resetConfig=0 DEV.SaveDataBankHost=config-dl.ffxiv.com.tw
-        var args = string.Join(" ",
-            $"DEV.LobbyHost01=neolobby01.ffxiv.com.tw",
-            $"DEV.LobbyPort01=54994",
-            $"DEV.GMServerHost=frontier.ffxiv.com.tw",
-            $"DEV.TestSID={sessionId}",
-            $"SYS.resetConfig=0",
-            $"DEV.SaveDataBankHost=config-dl.ffxiv.com.tw"
-        );
-
-        Process.Start(new ProcessStartInfo
-        {
-            FileName = exePath,
-            WorkingDirectory = workingDir,
-            Arguments = args,
-            UseShellExecute = true
-        });
+        var gameLauncher = PlatformServiceFactory.GetGameLauncher();
+        gameLauncher.LaunchGame(gamePath, sessionId);
     }
 }
 

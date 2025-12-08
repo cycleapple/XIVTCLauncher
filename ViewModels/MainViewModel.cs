@@ -3,6 +3,8 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using FFXIVSimpleLauncher.Models;
 using FFXIVSimpleLauncher.Services;
+using FFXIVSimpleLauncher.Services.Platform;
+using FFXIVSimpleLauncher.Services.Platform.Interfaces;
 using FFXIVSimpleLauncher.Views;
 
 namespace FFXIVSimpleLauncher.ViewModels;
@@ -12,7 +14,7 @@ public partial class MainViewModel : ObservableObject
     private readonly SettingsService _settingsService;
     private readonly LoginService _loginService;
     private readonly DalamudService _dalamudService;
-    private readonly CredentialService _credentialService;
+    private readonly ICredentialService _credentialService;
     private LauncherSettings _settings;
 
     [ObservableProperty]
@@ -26,7 +28,7 @@ public partial class MainViewModel : ObservableObject
         _settingsService = new SettingsService();
         _loginService = new LoginService();
         _dalamudService = new DalamudService();
-        _credentialService = new CredentialService();
+        _credentialService = PlatformServiceFactory.GetCredentialService();
         _settings = _settingsService.Load();
 
         // Subscribe to Dalamud status updates

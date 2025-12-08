@@ -6,6 +6,9 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+
+    <!-- Platform-specific settings -->
+    <RuntimeIdentifiers>win-x64;osx-arm64;osx-x64</RuntimeIdentifiers>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,6 +17,11 @@
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3595.46" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="SevenZipExtractor" Version="1.0.17" />
+  </ItemGroup>
+
+  <!-- Platform abstraction layer is cross-platform -->
+  <ItemGroup>
+    <Compile Include="Services\Platform\**\*.cs" />
   </ItemGroup>
 
 </Project>

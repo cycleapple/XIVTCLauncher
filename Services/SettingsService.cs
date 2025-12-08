@@ -1,6 +1,7 @@
 using System.IO;
 using System.Text.Json;
 using FFXIVSimpleLauncher.Models;
+using FFXIVSimpleLauncher.Services.Platform;
 
 namespace FFXIVSimpleLauncher.Services;
 
@@ -14,13 +15,10 @@ public class SettingsService
 
     public SettingsService()
     {
-        var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var appFolder = Path.Combine(appDataPath, "FFXIVSimpleLauncher");
+        var platformPaths = PlatformServiceFactory.GetPlatformPaths();
+        var appFolder = platformPaths.GetApplicationDataPath();
 
-        if (!Directory.Exists(appFolder))
-        {
-            Directory.CreateDirectory(appFolder);
-        }
+        platformPaths.EnsureDirectories();
 
         _settingsPath = Path.Combine(appFolder, "settings.json");
     }
