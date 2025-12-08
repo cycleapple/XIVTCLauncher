@@ -1,3 +1,4 @@
+using System.IO;
 using FFXIVSimpleLauncher.Services.Platform.Interfaces;
 
 namespace FFXIVSimpleLauncher.Services.Platform.MacOS;

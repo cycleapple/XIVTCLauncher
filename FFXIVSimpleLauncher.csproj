@@ -19,9 +19,4 @@
     <PackageReference Include="SevenZipExtractor" Version="1.0.17" />
   </ItemGroup>
 
-  <!-- Platform abstraction layer is cross-platform -->
-  <ItemGroup>
-    <Compile Include="Services\Platform\**\*.cs" />
-  </ItemGroup>
-
 </Project>
