@@ -12,12 +12,12 @@ namespace FFXIVSimpleLauncher.Services;
 
 /// <summary>
 /// Dalamud service supporting both auto-download and local path modes.
-/// Downloads Dalamud from yanmucorp/Dalamud and assets from ottercorp.
+/// Downloads Dalamud from yanmucorp/Dalamud and assets from yanmucorp/DalamudAssets.
 /// </summary>
 public class DalamudService
 {
-    // Ottercorp (CN) asset server - compatible with yanmucorp Dalamud
-    private const string ASSET_URL = "https://aonyx.ffxiv.wang/Dalamud/Asset/Meta";
+    // yanmucorp DalamudAssets - GitHub raw content
+    private const string ASSET_URL = "https://raw.githubusercontent.com/yanmucorp/DalamudAssets/master/assetCN.json";
 
     private readonly DirectoryInfo _baseDirectory;
     private readonly DirectoryInfo _configDirectory;
