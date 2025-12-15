@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -52,6 +53,11 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty]
     private string _remainingTime = string.Empty;
+
+    /// <summary>
+    /// Application version from assembly.
+    /// </summary>
+    public string AppVersion => $"v{Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "1.0.0"}";
 
     public MainViewModel()
     {

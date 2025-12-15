@@ -39,13 +39,18 @@
                    HorizontalAlignment="Center"
                    Margin="0,0,0,8"/>
 
-        <!-- Subtitle -->
-        <TextBlock Grid.Row="1"
-                   Text="台灣版"
-                   Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
-                   HorizontalAlignment="Center"
-                   Foreground="{DynamicResource MaterialDesignBodyLight}"
-                   Margin="0,0,0,24"/>
+        <!-- Subtitle with Version -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,24">
+            <TextBlock Text="台灣版"
+                       Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
+                       Foreground="{DynamicResource MaterialDesignBodyLight}"/>
+            <TextBlock Text=" - "
+                       Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
+                       Foreground="{DynamicResource MaterialDesignBodyLight}"/>
+            <TextBlock Text="{Binding AppVersion}"
+                       Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
+                       Foreground="{DynamicResource MaterialDesignBodyLight}"/>
+        </StackPanel>
 
         <!-- Buttons -->
         <StackPanel Grid.Row="2" Orientation="Vertical" HorizontalAlignment="Center">
