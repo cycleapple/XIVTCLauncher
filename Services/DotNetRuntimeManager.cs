@@ -208,7 +208,30 @@ public class DotNetRuntimeManager
             }
             catch (Exception ex)
             {
-                ReportStatus($"警告: 無法清理 Runtime 目錄: {ex.Message}");
+                ReportStatus($"警告: 無法完全清理 Runtime 目錄: {ex.Message}");
+
+                // If full deletion failed, at least try to clean critical subdirectories
+                // to avoid version conflicts (e.g., hostfxr 10.0 with coreclr 9.0)
+                try
+                {
+                    var hostFxrDir = Path.Combine(_runtimeDirectory.FullName, "host", "fxr");
+                    if (Directory.Exists(hostFxrDir))
+                    {
+                        Directory.Delete(hostFxrDir, true);
+                        ReportStatus("已清理 host/fxr 目錄");
+                    }
+
+                    var sharedDir = Path.Combine(_runtimeDirectory.FullName, "shared");
+                    if (Directory.Exists(sharedDir))
+                    {
+                        Directory.Delete(sharedDir, true);
+                        ReportStatus("已清理 shared 目錄");
+                    }
+                }
+                catch (Exception innerEx)
+                {
+                    ReportStatus($"警告: 無法清理子目錄: {innerEx.Message}");
+                }
             }
         }
         _runtimeDirectory.Create();
