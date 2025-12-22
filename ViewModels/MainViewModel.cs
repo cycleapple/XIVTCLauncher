@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Reflection;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -13,7 +14,7 @@ public partial class MainViewModel : ObservableObject
     private readonly SettingsService _settingsService;
     private readonly LoginService _loginService;
     private readonly DalamudService _dalamudService;
-    private readonly CredentialService _credentialService;
+    private readonly AccountService _accountService;
     private readonly GameUpdateService _gameUpdateService;
     private readonly LauncherUpdateService _launcherUpdateService;
     private LauncherSettings _settings;
@@ -71,20 +72,42 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private string _launcherDownloadInfo = string.Empty;
 
+    // 帳號相關屬性
+    [ObservableProperty]
+    private ObservableCollection<Account> _accounts = new();
+
+    [ObservableProperty]
+    private Account? _selectedAccount;
+
+    [ObservableProperty]
+    private bool _hasAccounts;
+
     /// <summary>
     /// Application version from assembly.
     /// </summary>
     public string AppVersion => $"v{Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "1.0.0"}";
+
+    partial void OnSelectedAccountChanged(Account? value)
+    {
+        if (value != null)
+        {
+            _accountService.SelectAccount(_settings, value.Id);
+            _settingsService.Save(_settings);
+        }
+    }
 
     public MainViewModel()
     {
         _settingsService = new SettingsService();
         _loginService = new LoginService();
         _dalamudService = new DalamudService();
-        _credentialService = new CredentialService();
+        _accountService = new AccountService();
         _gameUpdateService = new GameUpdateService();
         _launcherUpdateService = new LauncherUpdateService();
         _settings = _settingsService.Load();
+
+        // Initialize accounts
+        RefreshAccounts();
 
         // Subscribe to Dalamud status updates
         _dalamudService.StatusChanged += status => StatusMessage = status;
@@ -163,8 +186,12 @@ public partial class MainViewModel : ObservableObject
 
             if (hasUpdate)
             {
-                HasLauncherUpdate = true;
-                LatestLauncherVersion = $"v{_launcherUpdateService.LatestVersion}";
+                // 在 UI 執行緒上設定屬性
+                await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
+                {
+                    HasLauncherUpdate = true;
+                    LatestLauncherVersion = $"v{_launcherUpdateService.LatestVersion}";
+                });
             }
         }
         catch
@@ -342,6 +369,13 @@ public partial class MainViewModel : ObservableObject
             return;
         }
 
+        // 檢查是否選擇了帳號
+        if (SelectedAccount == null)
+        {
+            StatusMessage = "請先選擇或新增帳號";
+            return;
+        }
+
         // 檢查是否有未完成的更新
         if (HasUpdate)
         {
@@ -382,33 +416,50 @@ public partial class MainViewModel : ObservableObject
             }
         }
 
-        // Load saved credentials
-        string? savedEmail = _settings.Username;
+        // Load saved credentials for selected account
+        string? savedEmail = SelectedAccount.Username;
         string? savedPassword = null;
-        if (!string.IsNullOrEmpty(savedEmail) && _settings.RememberPassword)
+        if (SelectedAccount.RememberPassword)
         {
-            savedPassword = _credentialService.GetPassword(savedEmail);
+            savedPassword = _accountService.GetPassword(SelectedAccount.Id);
+        }
+
+        // Initialize OTP service for this specific account if auto OTP is enabled
+        OtpService? accountOtpService = null;
+        if (SelectedAccount.AutoOtp)
+        {
+            accountOtpService = new OtpService();
+            accountOtpService.InitializeForAccount(SelectedAccount.Id);
         }
 
         // Open WebView2 login window with saved credentials and auto OTP
-        var webLoginWindow = new WebLoginWindow(_settings.GamePath, savedEmail, savedPassword, _settings.AutoOtp);
+        var webLoginWindow = new WebLoginWindow(
+            _settings.GamePath,
+            savedEmail,
+            savedPassword,
+            SelectedAccount.AutoOtp,
+            accountOtpService);
         var dialogResult = webLoginWindow.ShowDialog();
 
         if (dialogResult == true && !string.IsNullOrEmpty(webLoginWindow.SessionId))
         {
             // Save credentials if user chose to remember
-            if (!string.IsNullOrEmpty(webLoginWindow.LastEmail))
+            if (!string.IsNullOrEmpty(webLoginWindow.LastEmail) && SelectedAccount != null)
             {
-                _settings.Username = webLoginWindow.LastEmail;
-                _settings.RememberPassword = true;
-                _credentialService.SavePassword(webLoginWindow.LastEmail, webLoginWindow.LastPassword ?? "");
+                // Update account username if changed
+                if (SelectedAccount.Username != webLoginWindow.LastEmail)
+                {
+                    SelectedAccount.Username = webLoginWindow.LastEmail;
+                }
+                SelectedAccount.RememberPassword = true;
+                _accountService.SavePassword(SelectedAccount.Id, webLoginWindow.LastPassword ?? "");
                 _settingsService.Save(_settings);
             }
-            else if (webLoginWindow.LastEmail == null && !string.IsNullOrEmpty(_settings.Username))
+            else if (webLoginWindow.LastEmail == null && SelectedAccount != null)
             {
                 // User unchecked remember me, clear saved password
-                _credentialService.DeletePassword(_settings.Username);
-                _settings.RememberPassword = false;
+                _accountService.DeletePassword(SelectedAccount.Id);
+                SelectedAccount.RememberPassword = false;
                 _settingsService.Save(_settings);
             }
 
@@ -515,6 +566,16 @@ public partial class MainViewModel : ObservableObject
             return;
         }
 
+        // 檢查遊戲更新（與登入流程一致）
+        StatusMessage = "檢查遊戲更新...";
+        await CheckForUpdatesAsync();
+
+        if (HasUpdate)
+        {
+            StatusMessage = "請先完成遊戲更新";
+            return;
+        }
+
         try
         {
             // Configure Dalamud source mode
@@ -544,6 +605,33 @@ public partial class MainViewModel : ObservableObject
         catch (Exception ex)
         {
             StatusMessage = $"啟動遊戲失敗: {ex.Message}";
+        }
+    }
+
+    /// <summary>
+    /// Refresh the accounts list from settings.
+    /// </summary>
+    private void RefreshAccounts()
+    {
+        Accounts = new ObservableCollection<Account>(_settings.Accounts);
+        HasAccounts = Accounts.Count > 0;
+        SelectedAccount = _accountService.GetSelectedAccount(_settings);
+    }
+
+    /// <summary>
+    /// Open the account management window.
+    /// </summary>
+    [RelayCommand]
+    private void OpenAccountManager()
+    {
+        var window = new AccountManagementWindow(_settings);
+        window.Owner = Application.Current.MainWindow;
+
+        if (window.ShowDialog() == true)
+        {
+            // Reload accounts after management window closes
+            RefreshAccounts();
+            _settingsService.Save(_settings);
         }
     }
 }
