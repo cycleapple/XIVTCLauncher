@@ -230,18 +230,77 @@ public class LauncherUpdateService
             return;
         }
 
-        // Create the update batch script
+        // Create the update batch script with logging
+        var logPath = Path.Combine(Path.GetTempPath(), "XIVTCLauncher-Update.log");
         var batchPath = Path.Combine(Path.GetTempPath(), "XIVTCLauncher-Update.bat");
         var batchContent = $@"@echo off
 chcp 65001 > nul
-echo 正在更新 XIV TC Launcher...
+set LOGFILE=""{logPath}""
+
+echo ========================================== > %LOGFILE%
+echo   XIV TC Launcher 自動更新日誌 >> %LOGFILE%
+echo   時間: %date% %time% >> %LOGFILE%
+echo ========================================== >> %LOGFILE%
+
+echo ==========================================
+echo   XIV TC Launcher 自動更新
+echo ==========================================
 echo.
-timeout /t 2 /nobreak > nul
+echo 日誌檔案: {logPath}
+echo.
+echo 等待啟動器關閉...
+timeout /t 3 /nobreak > nul
+
+echo. >> %LOGFILE%
+echo 來源目錄: {updateSourceDir} >> %LOGFILE%
+echo 目標目錄: {targetDir} >> %LOGFILE%
+echo 啟動器路徑: {currentExePath} >> %LOGFILE%
+
+echo.
+echo 來源: {updateSourceDir}
+echo 目標: {targetDir}
+echo.
+
+echo. >> %LOGFILE%
+echo 檢查來源目錄內容: >> %LOGFILE%
+dir ""{updateSourceDir}"" >> %LOGFILE% 2>&1
+
+echo. >> %LOGFILE%
+echo 檢查目標目錄內容 (更新前): >> %LOGFILE%
+dir ""{targetDir}\FFXIVSimpleLauncher.exe"" >> %LOGFILE% 2>&1
+
 echo 複製新檔案...
-xcopy /E /Y /Q ""{updateSourceDir}\*"" ""{targetDir}\""
+echo. >> %LOGFILE%
+echo 執行 robocopy... >> %LOGFILE%
+robocopy ""{updateSourceDir}"" ""{targetDir}"" /E /IS /IT /V >> %LOGFILE% 2>&1
+set ROBOCOPY_EXIT=%errorlevel%
+echo robocopy 結束碼: %ROBOCOPY_EXIT% >> %LOGFILE%
+echo robocopy 結束碼: %ROBOCOPY_EXIT% (0-7 為成功)
+
+if %ROBOCOPY_EXIT% GEQ 8 goto :COPY_ERROR
+goto :COPY_SUCCESS
+
+:COPY_ERROR
 echo.
-echo 更新完成！正在啟動...
-timeout /t 1 /nobreak > nul
+echo [錯誤] 複製失敗！錯誤碼: %ROBOCOPY_EXIT%
+echo [錯誤] 複製失敗！錯誤碼: %ROBOCOPY_EXIT% >> %LOGFILE%
+echo 請查看日誌: {logPath}
+pause
+exit /b 1
+
+:COPY_SUCCESS
+
+echo. >> %LOGFILE%
+echo 檢查目標目錄內容 (更新後): >> %LOGFILE%
+dir ""{targetDir}\FFXIVSimpleLauncher.exe"" >> %LOGFILE% 2>&1
+
+echo.
+echo ==========================================
+echo   更新完成！
+echo ==========================================
+echo 更新完成！ >> %LOGFILE%
+timeout /t 2 /nobreak > nul
+echo 正在啟動...
 start """" ""{currentExePath}""
 echo 清理臨時檔案...
 rmdir /S /Q ""{updateSourceDir}"" 2>nul

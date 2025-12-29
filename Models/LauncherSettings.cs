@@ -15,15 +15,47 @@ public enum DalamudSourceMode
 
 public class LauncherSettings
 {
-    public string Username { get; set; } = string.Empty;
-    public bool UseOtp { get; set; } = false;
-    public bool RememberPassword { get; set; } = false;
-    public string GamePath { get; set; } = string.Empty;
+    // === Multi-Account Support ===
 
     /// <summary>
-    /// Enable automatic OTP generation (requires OTP secret to be configured).
+    /// List of configured accounts.
     /// </summary>
+    public List<Account> Accounts { get; set; } = new();
+
+    /// <summary>
+    /// ID of the currently selected account.
+    /// </summary>
+    public string? SelectedAccountId { get; set; }
+
+    // === Legacy fields (for migration, kept for backwards compatibility) ===
+
+    /// <summary>
+    /// Legacy: Use Accounts collection instead.
+    /// </summary>
+    [Obsolete("Use Accounts collection instead")]
+    public string Username { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Legacy: Use account-specific setting.
+    /// </summary>
+    [Obsolete("Use account-specific setting")]
+    public bool UseOtp { get; set; } = false;
+
+    /// <summary>
+    /// Legacy: Use account-specific setting.
+    /// </summary>
+    [Obsolete("Use account-specific setting")]
+    public bool RememberPassword { get; set; } = false;
+
+    /// <summary>
+    /// Legacy: Use account-specific setting.
+    /// </summary>
+    [Obsolete("Use account-specific setting")]
     public bool AutoOtp { get; set; } = false;
+
+    // === Global Settings (unchanged) ===
+
+    public string GamePath { get; set; } = string.Empty;
 
     // Dalamud settings
     public bool EnableDalamud { get; set; } = false;

@@ -7,7 +7,7 @@
         xmlns:viewmodels="clr-namespace:FFXIVSimpleLauncher.ViewModels"
         mc:Ignorable="d"
         Title="XIV TC Launcher"
-        Height="480" Width="500"
+        Height="520" Width="500"
         WindowStartupLocation="CenterScreen"
         ResizeMode="CanResizeWithGrip"
         Background="{DynamicResource MaterialDesignPaper}"
@@ -28,9 +28,10 @@
             <RowDefinition Height="Auto"/>  <!-- Row 0: 啟動器更新提示 -->
             <RowDefinition Height="Auto"/>  <!-- Row 1: Title -->
             <RowDefinition Height="Auto"/>  <!-- Row 2: Subtitle -->
-            <RowDefinition Height="Auto"/>  <!-- Row 3: Buttons -->
-            <RowDefinition Height="Auto"/>  <!-- Row 4: Game Update Card -->
-            <RowDefinition Height="*"/>     <!-- Row 5: Status Log -->
+            <RowDefinition Height="Auto"/>  <!-- Row 3: Account Selection -->
+            <RowDefinition Height="Auto"/>  <!-- Row 4: Buttons -->
+            <RowDefinition Height="Auto"/>  <!-- Row 5: Game Update Card -->
+            <RowDefinition Height="*"/>     <!-- Row 6: Status Log -->
         </Grid.RowDefinitions>
 
         <!-- 啟動器更新提示橫幅 (Row 0) -->
@@ -46,8 +47,7 @@
                 </Grid.RowDefinitions>
 
                 <!-- 正常提示 (未下載時) -->
-                <Grid Grid.Row="0"
-                      Visibility="{Binding IsDownloadingLauncherUpdate, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverse}">
+                <Grid Grid.Row="0">
                     <Grid.Style>
                         <Style TargetType="Grid">
                             <Setter Property="Visibility" Value="Visible"/>
@@ -127,7 +127,7 @@
                    Margin="0,0,0,8"/>
 
         <!-- Subtitle with Version -->
-        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,24">
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,16">
             <TextBlock Text="台灣版"
                        Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
                        Foreground="{DynamicResource MaterialDesignBodyLight}"/>
@@ -139,8 +139,60 @@
                        Foreground="{DynamicResource MaterialDesignBodyLight}"/>
         </StackPanel>
 
-        <!-- Buttons -->
-        <StackPanel Grid.Row="3" Orientation="Vertical" HorizontalAlignment="Center">
+        <!-- Account Selection (Row 3) -->
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,16">
+            <TextBlock Text="帳號："
+                       VerticalAlignment="Center"
+                       Margin="0,0,8,0"
+                       Foreground="{DynamicResource MaterialDesignBodyLight}"/>
+            <ComboBox Width="200"
+                      ItemsSource="{Binding Accounts}"
+                      SelectedItem="{Binding SelectedAccount}"
+                      Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                      materialDesign:HintAssist.Hint="選擇帳號">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding DisplayName}"/>
+                            <TextBlock Text=" - "
+                                       Foreground="Gray"
+                                       FontSize="11"/>
+                            <TextBlock Text="{Binding Username}"
+                                       Foreground="Gray"
+                                       FontSize="11"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+            <Button Style="{StaticResource MaterialDesignIconButton}"
+                    Command="{Binding OpenAccountManagerCommand}"
+                    ToolTip="管理帳號"
+                    Margin="4,0,0,0">
+                <materialDesign:PackIcon Kind="AccountCog"/>
+            </Button>
+        </StackPanel>
+
+        <!-- No Accounts Message -->
+        <TextBlock Grid.Row="3"
+                   Text="尚未設定帳號，請點擊右側按鈕新增"
+                   Foreground="Orange"
+                   FontSize="12"
+                   HorizontalAlignment="Center"
+                   Margin="0,8,0,16">
+            <TextBlock.Style>
+                <Style TargetType="TextBlock">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding HasAccounts}" Value="False">
+                            <Setter Property="Visibility" Value="Visible"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TextBlock.Style>
+        </TextBlock>
+
+        <!-- Buttons (Row 4) -->
+        <StackPanel Grid.Row="4" Orientation="Vertical" HorizontalAlignment="Center">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                 <Button Content="登入"
                         Command="{Binding LoginCommand}"
@@ -159,18 +211,29 @@
                         FontSize="16"/>
             </StackPanel>
 
-            <Button Content="測試注入 (跳過登入)"
-                    Command="{Binding TestInjectCommand}"
-                    Style="{StaticResource MaterialDesignFlatButton}"
-                    Foreground="Orange"
-                    Height="32"
-                    FontSize="12"
-                    Margin="0,12,0,0"
-                    ToolTip="以假的 Session 啟動遊戲來測試 Dalamud 注入 (會在大廳斷線)"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,12,0,0">
+                <Button Content="測試注入 (跳過登入)"
+                        Command="{Binding TestInjectCommand}"
+                        Style="{StaticResource MaterialDesignFlatButton}"
+                        Foreground="Orange"
+                        Height="32"
+                        FontSize="12"
+                        ToolTip="以假的 Session 啟動遊戲來測試 Dalamud 注入 (會在大廳斷線)"/>
+
+                <Button Content="手動注入 Dalamud"
+                        Command="{Binding ManualInjectCommand}"
+                        Style="{StaticResource MaterialDesignFlatButton}"
+                        Foreground="{DynamicResource PrimaryHueMidBrush}"
+                        Height="32"
+                        FontSize="12"
+                        Margin="8,0,0,0"
+                        ToolTip="注入 Dalamud 到已運行的遊戲進程"
+                        Visibility="{Binding EnableDalamud, Converter={StaticResource BoolToVisibility}}"/>
+            </StackPanel>
         </StackPanel>
 
         <!-- Update Card (顯示當有更新時或更新中) -->
-        <materialDesign:Card Grid.Row="4"
+        <materialDesign:Card Grid.Row="5"
                              Margin="0,16,0,0"
                              Padding="16"
                              Background="{DynamicResource MaterialDesignCardBackground}">
@@ -335,7 +398,7 @@
         </materialDesign:Card>
 
         <!-- Status Message with Scroll -->
-        <materialDesign:Card Grid.Row="5"
+        <materialDesign:Card Grid.Row="6"
                              Margin="0,16,0,0"
                              Padding="12"
                              Background="{DynamicResource MaterialDesignCardBackground}">

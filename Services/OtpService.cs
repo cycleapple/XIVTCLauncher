@@ -7,13 +7,16 @@ namespace FFXIVSimpleLauncher.Services;
 /// <summary>
 /// Service for generating TOTP (Time-based One-Time Password) codes.
 /// Stores the OTP secret securely in Windows Credential Manager.
+/// Supports per-account OTP secrets.
 /// </summary>
 public class OtpService
 {
-    private const string CredentialTarget = "FFXIVSimpleLauncher-OTP";
+    private const string CredentialTargetBase = "FFXIVSimpleLauncher-OTP";
+    private const string LegacyCredentialTarget = "FFXIVSimpleLauncher-OTP"; // For migration
     private const int TimeStep = 30; // 30 seconds
     private const int CodeDigits = 6;
 
+    private string? _currentAccountId;
     private byte[]? _secretKey;
     private System.Timers.Timer? _refreshTimer;
 
@@ -43,10 +46,58 @@ public class OtpService
     public bool IsConfigured => _secretKey != null && _secretKey.Length > 0;
 
     /// <summary>
-    /// Initialize the OTP service and load any saved secret.
+    /// Current account ID (null for legacy mode).
+    /// </summary>
+    public string? CurrentAccountId => _currentAccountId;
+
+    /// <summary>
+    /// Get the credential target for the current account.
+    /// </summary>
+    private string GetCredentialTarget()
+    {
+        return string.IsNullOrEmpty(_currentAccountId)
+            ? LegacyCredentialTarget
+            : $"{CredentialTargetBase}-{_currentAccountId}";
+    }
+
+    /// <summary>
+    /// Get the credential target for a specific account.
+    /// </summary>
+    private static string GetCredentialTargetForAccount(string accountId)
+    {
+        return $"{CredentialTargetBase}-{accountId}";
+    }
+
+    /// <summary>
+    /// Initialize the OTP service in legacy mode (single account).
     /// </summary>
     public void Initialize()
     {
+        _currentAccountId = null;
+        LoadSecret();
+        if (IsConfigured)
+        {
+            StartAutoRefresh();
+        }
+    }
+
+    /// <summary>
+    /// Initialize the OTP service for a specific account.
+    /// </summary>
+    /// <param name="accountId">The account ID to load OTP secret for</param>
+    public void InitializeForAccount(string accountId)
+    {
+        if (string.IsNullOrEmpty(accountId))
+        {
+            Initialize();
+            return;
+        }
+
+        StopAutoRefresh();
+        _currentAccountId = accountId;
+        _secretKey = null;
+        CurrentCode = string.Empty;
+
         LoadSecret();
         if (IsConfigured)
         {
@@ -229,6 +280,25 @@ public class OtpService
 
     private void SaveSecret(string base32Secret)
     {
+        SaveSecretToTarget(GetCredentialTarget(), base32Secret);
+    }
+
+    private void LoadSecret()
+    {
+        var target = GetCredentialTarget();
+        _secretKey = LoadSecretFromTarget(target);
+    }
+
+    private void DeleteSecret()
+    {
+        CredDelete(GetCredentialTarget(), CRED_TYPE.GENERIC, 0);
+    }
+
+    /// <summary>
+    /// Save OTP secret to a specific credential target.
+    /// </summary>
+    private static void SaveSecretToTarget(string target, string base32Secret)
+    {
         var secretBytes = Encoding.Unicode.GetBytes(base32Secret);
         var secretPtr = Marshal.AllocHGlobal(secretBytes.Length);
 
@@ -239,7 +309,7 @@ public class OtpService
             var credential = new CREDENTIAL
             {
                 Type = CRED_TYPE.GENERIC,
-                TargetName = CredentialTarget,
+                TargetName = target,
                 UserName = "OTPSecret",
                 CredentialBlob = secretPtr,
                 CredentialBlobSize = (uint)secretBytes.Length,
@@ -254,9 +324,12 @@ public class OtpService
         }
     }
 
-    private void LoadSecret()
+    /// <summary>
+    /// Load OTP secret from a specific credential target.
+    /// </summary>
+    private static byte[]? LoadSecretFromTarget(string target)
     {
-        if (CredRead(CredentialTarget, CRED_TYPE.GENERIC, 0, out var credentialPtr))
+        if (CredRead(target, CRED_TYPE.GENERIC, 0, out var credentialPtr))
         {
             try
             {
@@ -267,8 +340,8 @@ public class OtpService
                     Marshal.Copy(credential.CredentialBlob, secretBytes, 0, (int)credential.CredentialBlobSize);
                     var base32Secret = Encoding.Unicode.GetString(secretBytes);
 
-                    // Decode and store
-                    _secretKey = Base32Decode(base32Secret.Replace(" ", "").ToUpperInvariant());
+                    // Decode and return
+                    return Base32Decode(base32Secret.Replace(" ", "").ToUpperInvariant());
                 }
             }
             finally
@@ -276,11 +349,81 @@ public class OtpService
                 CredFree(credentialPtr);
             }
         }
+        return null;
     }
 
-    private void DeleteSecret()
+    /// <summary>
+    /// Check if an OTP secret exists for a specific account.
+    /// </summary>
+    public static bool HasSecretForAccount(string accountId)
     {
-        CredDelete(CredentialTarget, CRED_TYPE.GENERIC, 0);
+        var target = GetCredentialTargetForAccount(accountId);
+        if (CredRead(target, CRED_TYPE.GENERIC, 0, out var credentialPtr))
+        {
+            CredFree(credentialPtr);
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Delete OTP secret for a specific account.
+    /// </summary>
+    public static void DeleteSecretForAccount(string accountId)
+    {
+        var target = GetCredentialTargetForAccount(accountId);
+        CredDelete(target, CRED_TYPE.GENERIC, 0);
+    }
+
+    /// <summary>
+    /// Check if legacy OTP secret exists (for migration).
+    /// </summary>
+    public static bool HasLegacySecret()
+    {
+        if (CredRead(LegacyCredentialTarget, CRED_TYPE.GENERIC, 0, out var credentialPtr))
+        {
+            CredFree(credentialPtr);
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Migrate legacy OTP secret to a specific account.
+    /// </summary>
+    public static bool MigrateLegacySecretToAccount(string accountId)
+    {
+        var secretBytes = LoadSecretFromTarget(LegacyCredentialTarget);
+        if (secretBytes != null && secretBytes.Length > 0)
+        {
+            // Read the raw base32 secret from legacy target
+            if (CredRead(LegacyCredentialTarget, CRED_TYPE.GENERIC, 0, out var credentialPtr))
+            {
+                try
+                {
+                    var credential = Marshal.PtrToStructure<CREDENTIAL>(credentialPtr);
+                    if (credential.CredentialBlob != IntPtr.Zero && credential.CredentialBlobSize > 0)
+                    {
+                        var rawSecretBytes = new byte[credential.CredentialBlobSize];
+                        Marshal.Copy(credential.CredentialBlob, rawSecretBytes, 0, (int)credential.CredentialBlobSize);
+                        var base32Secret = Encoding.Unicode.GetString(rawSecretBytes);
+
+                        // Save to new account-specific target
+                        var newTarget = GetCredentialTargetForAccount(accountId);
+                        SaveSecretToTarget(newTarget, base32Secret);
+
+                        // Delete legacy secret
+                        CredDelete(LegacyCredentialTarget, CRED_TYPE.GENERIC, 0);
+                        return true;
+                    }
+                }
+                finally
+                {
+                    CredFree(credentialPtr);
+                }
+            }
+        }
+        return false;
     }
 
     private enum CRED_TYPE : uint { GENERIC = 1 }

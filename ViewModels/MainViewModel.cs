@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Reflection;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -81,6 +82,11 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty]
     private bool _hasAccounts;
+
+    /// <summary>
+    /// Whether Dalamud is enabled in settings (for UI binding).
+    /// </summary>
+    public bool EnableDalamud => _settings.EnableDalamud;
 
     /// <summary>
     /// Application version from assembly.
@@ -622,6 +628,126 @@ public partial class MainViewModel : ObservableObject
         catch (Exception ex)
         {
             StatusMessage = $"啟動遊戲失敗: {ex.Message}";
+        }
+    }
+
+    /// <summary>
+    /// 手動注入 Dalamud 到已運行的遊戲進程
+    /// </summary>
+    [RelayCommand]
+    private async Task ManualInjectAsync()
+    {
+        if (!_settings.EnableDalamud)
+        {
+            StatusMessage = "Dalamud 未啟用。請先在設定中啟用。";
+            return;
+        }
+
+        StatusMessage = "正在搜索遊戲進程...";
+
+        // 搜索 ffxiv_dx11.exe 進程
+        var gameProcesses = Process.GetProcessesByName("ffxiv_dx11");
+
+        if (gameProcesses.Length == 0)
+        {
+            MessageBox.Show(
+                "找不到運行中的 FFXIV 遊戲。\n\n請先啟動遊戲再嘗試注入。",
+                "找不到遊戲進程",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
+            StatusMessage = "找不到運行中的遊戲進程";
+            return;
+        }
+
+        int targetPid;
+
+        if (gameProcesses.Length > 1)
+        {
+            // 找到多個進程，讓用戶選擇
+            var processInfoList = gameProcesses
+                .Select(p => $"PID: {p.Id} - 啟動時間: {GetProcessStartTime(p)}")
+                .ToArray();
+
+            var message = $"找到 {gameProcesses.Length} 個 FFXIV 進程：\n\n" +
+                         string.Join("\n", processInfoList) +
+                         "\n\n將注入第一個進程 (PID: {gameProcesses[0].Id})。\n確定繼續嗎？";
+
+            var result = MessageBox.Show(
+                message,
+                "找到多個遊戲進程",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (result != MessageBoxResult.Yes)
+            {
+                StatusMessage = "手動注入已取消";
+                return;
+            }
+
+            targetPid = gameProcesses[0].Id;
+        }
+        else
+        {
+            targetPid = gameProcesses[0].Id;
+        }
+
+        // 確保 Dalamud 已準備就緒
+        try
+        {
+            // Configure Dalamud source mode
+            _dalamudService.SourceMode = _settings.DalamudSourceMode;
+            _dalamudService.LocalDalamudPath = _settings.LocalDalamudPath;
+
+            StatusMessage = _settings.DalamudSourceMode == DalamudSourceMode.AutoDownload
+                ? "正在準備 Dalamud..."
+                : "載入本地 Dalamud...";
+            await _dalamudService.EnsureDalamudAsync();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(
+                $"準備 Dalamud 失敗: {ex.Message}",
+                "Dalamud 錯誤",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+            StatusMessage = $"準備 Dalamud 失敗: {ex.Message}";
+            return;
+        }
+
+        // 執行注入
+        StatusMessage = $"正在注入 Dalamud 到進程 {targetPid}...";
+
+        try
+        {
+            await _dalamudService.InjectToProcessAsync(targetPid, _settings.DalamudInjectionDelay);
+            StatusMessage = $"Dalamud 注入成功！(PID: {targetPid})";
+
+            MessageBox.Show(
+                $"Dalamud 已成功注入到遊戲進程！\n\nPID: {targetPid}",
+                "注入成功",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(
+                $"注入失敗: {ex.Message}",
+                "注入錯誤",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+            StatusMessage = $"注入失敗: {ex.Message}";
+        }
+    }
+
+    private static string GetProcessStartTime(Process p)
+    {
+        try
+        {
+            return p.StartTime.ToString("HH:mm:ss");
+        }
+        catch
+        {
+            return "未知";
         }
     }
 

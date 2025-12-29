@@ -182,19 +182,21 @@ public partial class WebLoginWindow : Window
     private readonly bool _autoOtp;
     private readonly OtpService? _otpService;
 
-    public WebLoginWindow(string gamePath, string? savedEmail = null, string? savedPassword = null, bool autoOtp = false)
+    /// <summary>
+    /// Create a new WebLoginWindow.
+    /// </summary>
+    /// <param name="gamePath">Path to the FFXIV game folder</param>
+    /// <param name="savedEmail">Pre-filled email address</param>
+    /// <param name="savedPassword">Pre-filled password</param>
+    /// <param name="autoOtp">Whether auto OTP is enabled</param>
+    /// <param name="otpService">Optional OtpService instance (already initialized for the account)</param>
+    public WebLoginWindow(string gamePath, string? savedEmail = null, string? savedPassword = null, bool autoOtp = false, OtpService? otpService = null)
     {
         _gamePath = gamePath;
         _savedEmail = savedEmail;
         _savedPassword = savedPassword;
         _autoOtp = autoOtp;
-
-        // Initialize OTP service if auto OTP is enabled
-        if (_autoOtp)
-        {
-            _otpService = new OtpService();
-            _otpService.Initialize();
-        }
+        _otpService = otpService;
 
         InitializeComponent();
         InitializeWebView();

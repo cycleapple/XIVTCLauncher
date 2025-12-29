@@ -704,4 +704,78 @@ public class DalamudService
     public bool IsGameVersionSupported(string gameVersion) => true;
     public bool IsExactVersionMatch(string gameVersion) => true;
     public string? GetSupportedGameVersion() => null;
+
+    /// <summary>
+    /// 注入 Dalamud 到已運行的遊戲進程
+    /// </summary>
+    /// <param name="processId">目標遊戲進程 ID</param>
+    /// <param name="injectionDelay">注入延遲 (毫秒)</param>
+    public async Task InjectToProcessAsync(int processId, int injectionDelay = 0)
+    {
+        if (State != DalamudState.Ready || _runner == null)
+            throw new InvalidOperationException("Dalamud 尚未準備就緒。請先呼叫 EnsureDalamudAsync()。");
+
+        // 驗證進程是否存在
+        Process targetProcess;
+        try
+        {
+            targetProcess = Process.GetProcessById(processId);
+            if (targetProcess.HasExited)
+                throw new InvalidOperationException($"進程 {processId} 已退出");
+        }
+        catch (ArgumentException)
+        {
+            throw new InvalidOperationException($"找不到進程 ID: {processId}");
+        }
+
+        await Task.Run(() =>
+        {
+            var dalamudPath = GetEffectiveDalamudPath();
+            var workingDir = Path.GetDirectoryName(_runner.FullName) ?? dalamudPath;
+
+            var assetDir = _currentAssetDirectory?.FullName
+                ?? Path.Combine(_assetDirectory.FullName, "dev");
+            Directory.CreateDirectory(assetDir);
+
+            var pluginDirectory = Path.Combine(_configDirectory.FullName, "installedPlugins");
+            var devPluginDirectory = Path.Combine(_configDirectory.FullName, "devPlugins");
+            var configPath = Path.Combine(_configDirectory.FullName, "dalamudConfig.json");
+            var logPath = Path.Combine(_configDirectory.FullName, "logs");
+
+            Directory.CreateDirectory(pluginDirectory);
+            Directory.CreateDirectory(devPluginDirectory);
+            Directory.CreateDirectory(logPath);
+
+            // 找到並驗證 .NET Runtime
+            ReportStatus("尋找 .NET Runtime...");
+            var runtimePath = FindDotNetRuntime();
+
+            if (string.IsNullOrEmpty(runtimePath))
+            {
+                throw new Exception("找不到有效的 .NET Runtime。請確保 Runtime 已下載或安裝 .NET 9.0 Runtime。");
+            }
+
+            // 設定環境變數
+            Environment.SetEnvironmentVariable("DALAMUD_RUNTIME", runtimePath);
+            Environment.SetEnvironmentVariable("DOTNET_ROOT", runtimePath);
+
+            // 執行注入
+            ReportStatus($"注入 Dalamud 到進程 {processId}...");
+
+            InjectDalamud(
+                _runner,
+                processId,
+                workingDir,
+                configPath,
+                pluginDirectory,
+                devPluginDirectory,
+                assetDir,
+                4, // Language: 4 = ChineseTraditional (Taiwan)
+                injectionDelay > 0 ? injectionDelay : 10000,
+                runtimePath
+            );
+
+            ReportStatus("Dalamud 注入成功！");
+        });
+    }
 }
