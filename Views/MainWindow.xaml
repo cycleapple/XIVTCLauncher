@@ -223,7 +223,7 @@
                 <Button Content="手動注入 Dalamud"
                         Command="{Binding ManualInjectCommand}"
                         Style="{StaticResource MaterialDesignFlatButton}"
-                        Foreground="{DynamicResource PrimaryHueMidBrush}"
+                        Foreground="#AB47BC"
                         Height="32"
                         FontSize="12"
                         Margin="8,0,0,0"
