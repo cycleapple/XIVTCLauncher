@@ -2,6 +2,7 @@
 bin/
 obj/
 out/
+publish/
 
 # Visual Studio
 .vs/
@@ -20,4 +21,9 @@ packages/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Release files (uploaded to GitHub Releases, not repo)
+*.zip
+
+# Claude Code
 CLAUDE.md
