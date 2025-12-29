@@ -443,7 +443,7 @@ public class DalamudService
 
         try
         {
-            InjectDalamud(
+            var output = InjectDalamud(
                 _runner,
                 gameProcess.Id,
                 workingDir,
@@ -455,6 +455,10 @@ public class DalamudService
                 injectionDelay > 0 ? injectionDelay : 10000,
                 runtimePath
             );
+            if (!string.IsNullOrWhiteSpace(output))
+            {
+                ReportStatus($"注入器輸出: {output}");
+            }
             ReportStatus("Dalamud 注入成功！");
         }
         catch (Exception ex)
@@ -602,8 +606,9 @@ public class DalamudService
 
     /// <summary>
     /// Inject Dalamud using command-line arguments.
+    /// Returns the injector output for diagnostic purposes.
     /// </summary>
-    private void InjectDalamud(
+    private string InjectDalamud(
         FileInfo runner,
         int gamePid,
         string workingDirectory,
@@ -619,7 +624,6 @@ public class DalamudService
         var launchArguments = new List<string>
         {
             "inject",
-            "-v",
             gamePid.ToString(),
             $"--dalamud-working-directory=\"{workingDirectory}\"",
             $"--dalamud-configuration-path=\"{configurationPath}\"",
@@ -627,7 +631,8 @@ public class DalamudService
             $"--dalamud-dev-plugin-directory=\"{devPluginDirectory}\"",
             $"--dalamud-asset-directory=\"{assetDirectory}\"",
             $"--dalamud-client-language={language}",
-            $"--dalamud-delay-initialize={delayInitializeMs}"
+            $"--dalamud-delay-initialize={delayInitializeMs}",
+            "--veh"
         };
 
         if (safeMode)
@@ -636,7 +641,7 @@ public class DalamudService
         }
 
         var argumentString = string.Join(" ", launchArguments);
-        ReportStatus($"執行: Dalamud.Injector.exe inject -v {gamePid} ...");
+        ReportStatus($"執行: Dalamud.Injector.exe inject {gamePid} --veh ...");
 
         var psi = new ProcessStartInfo(runner.FullName)
         {
@@ -680,6 +685,7 @@ public class DalamudService
             if (e.Data != null)
             {
                 error.AppendLine(e.Data);
+                ReportStatus($"[Injector Error] {e.Data}");
             }
         };
 
@@ -692,13 +698,19 @@ public class DalamudService
             throw new Exception("Dalamud.Injector.exe 逾時");
         }
 
+        var fullOutput = output.ToString().Trim();
+        var fullError = error.ToString().Trim();
+
         if (dalamudProcess.ExitCode != 0)
         {
-            var errorMsg = error.ToString().Trim();
-            if (string.IsNullOrEmpty(errorMsg))
-                errorMsg = output.ToString().Trim();
+            var errorMsg = string.IsNullOrEmpty(fullError) ? fullOutput : fullError;
             throw new Exception($"注入失敗 (退出碼 {dalamudProcess.ExitCode}): {errorMsg}");
         }
+
+        // Return combined output for diagnostic purposes
+        if (!string.IsNullOrEmpty(fullError))
+            return $"{fullOutput}\n{fullError}".Trim();
+        return fullOutput;
     }
 
     public bool IsGameVersionSupported(string gameVersion) => true;
@@ -710,7 +722,8 @@ public class DalamudService
     /// </summary>
     /// <param name="processId">目標遊戲進程 ID</param>
     /// <param name="injectionDelay">注入延遲 (毫秒)</param>
-    public async Task InjectToProcessAsync(int processId, int injectionDelay = 0)
+    /// <returns>注入器的輸出訊息</returns>
+    public async Task<string> InjectToProcessAsync(int processId, int injectionDelay = 0)
     {
         if (State != DalamudState.Ready || _runner == null)
             throw new InvalidOperationException("Dalamud 尚未準備就緒。請先呼叫 EnsureDalamudAsync()。");
@@ -728,7 +741,7 @@ public class DalamudService
             throw new InvalidOperationException($"找不到進程 ID: {processId}");
         }
 
-        await Task.Run(() =>
+        return await Task.Run(() =>
         {
             var dalamudPath = GetEffectiveDalamudPath();
             var workingDir = Path.GetDirectoryName(_runner.FullName) ?? dalamudPath;
@@ -762,7 +775,7 @@ public class DalamudService
             // 執行注入
             ReportStatus($"注入 Dalamud 到進程 {processId}...");
 
-            InjectDalamud(
+            var output = InjectDalamud(
                 _runner,
                 processId,
                 workingDir,
@@ -775,7 +788,8 @@ public class DalamudService
                 runtimePath
             );
 
-            ReportStatus("Dalamud 注入成功！");
+            ReportStatus("Dalamud 注入完成");
+            return output;
         });
     }
 }

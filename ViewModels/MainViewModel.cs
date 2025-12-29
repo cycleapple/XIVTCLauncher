@@ -719,11 +719,17 @@ public partial class MainViewModel : ObservableObject
 
         try
         {
-            await _dalamudService.InjectToProcessAsync(targetPid, _settings.DalamudInjectionDelay);
+            var injectorOutput = await _dalamudService.InjectToProcessAsync(targetPid, _settings.DalamudInjectionDelay);
             StatusMessage = $"Dalamud 注入指令已執行 (PID: {targetPid})";
+
+            // 顯示詳細輸出以便診斷
+            var outputInfo = string.IsNullOrWhiteSpace(injectorOutput)
+                ? "(無輸出)"
+                : injectorOutput;
 
             MessageBox.Show(
                 $"Dalamud 注入指令已執行！\n\nPID: {targetPid}\n\n" +
+                $"注入器輸出:\n{outputInfo}\n\n" +
                 "提示：\n" +
                 "• 如果遊戲中沒有看到 Dalamud，請嘗試在遊戲剛啟動時（加載畫面）就進行注入\n" +
                 "• 遊戲到達標題畫面後再注入可能會失敗\n" +

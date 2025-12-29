@@ -7,7 +7,7 @@
   "targets": {
     ".NETCoreApp,Version=v8.0": {},
     ".NETCoreApp,Version=v8.0/win-x64": {
-      "FFXIVSimpleLauncher/1.14.2": {
+      "FFXIVSimpleLauncher/1.14.3": {
         "dependencies": {
           "CommunityToolkit.Mvvm": "8.4.0",
           "MaterialDesignThemes": "5.3.0",
@@ -108,7 +108,7 @@
     }
   },
   "libraries": {
-    "FFXIVSimpleLauncher/1.14.2": {
+    "FFXIVSimpleLauncher/1.14.3": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
