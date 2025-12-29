@@ -183,6 +183,9 @@ public partial class MainViewModel : ObservableObject
                     _settings = settingsWindow.Settings;
                     _settingsService.Save(_settings);
                     StatusMessage = "設定已儲存";
+
+                    // 通知 UI 更新
+                    OnPropertyChanged(nameof(EnableDalamud));
                 }
             });
 
@@ -569,6 +572,9 @@ public partial class MainViewModel : ObservableObject
             _settingsService.Save(_settings);
             StatusMessage = "設定已儲存";
 
+            // 通知 UI 更新 (讓手動注入按鈕顯示/隱藏)
+            OnPropertyChanged(nameof(EnableDalamud));
+
             // 設定變更後重新檢查更新
             _ = CheckForUpdatesAsync();
         }
@@ -727,16 +733,64 @@ public partial class MainViewModel : ObservableObject
                 ? "(無輸出)"
                 : injectorOutput;
 
-            MessageBox.Show(
-                $"Dalamud 注入指令已執行！\n\nPID: {targetPid}\n\n" +
-                $"注入器輸出:\n{outputInfo}\n\n" +
-                "提示：\n" +
-                "• 如果遊戲中沒有看到 Dalamud，請嘗試在遊戲剛啟動時（加載畫面）就進行注入\n" +
-                "• 遊戲到達標題畫面後再注入可能會失敗\n" +
-                "• 按 Insert 鍵可以開啟/關閉 Dalamud 設定介面",
-                "注入完成",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information);
+            // 檢查是否有 Runtime 錯誤 (2147942403 = 0x80070003 = PATH_NOT_FOUND)
+            if (injectorOutput.Contains("2147942403") || injectorOutput.Contains("Initialize returned"))
+            {
+                var runtimePath = _dalamudService.GetRuntimeDirectoryPath();
+                var result = MessageBox.Show(
+                    $"注入器執行完成，但 Dalamud 初始化失敗！\n\n" +
+                    $"錯誤: 找不到 .NET Runtime 路徑\n\n" +
+                    $"這是因為遊戲進程缺少 DALAMUD_RUNTIME 環境變數。\n" +
+                    $"從 Steam 或其他方式啟動的遊戲不會自動設定此變數。\n\n" +
+                    $"是否要自動設定系統環境變數？\n" +
+                    $"(設定後需重新啟動遊戲才能生效)\n\n" +
+                    $"變數值: {runtimePath}",
+                    "設定環境變數？",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    try
+                    {
+                        // 只設定 DALAMUD_RUNTIME (不設定 DOTNET_ROOT，因為會影響其他 .NET 應用程式)
+                        Environment.SetEnvironmentVariable("DALAMUD_RUNTIME", runtimePath, EnvironmentVariableTarget.User);
+
+                        MessageBox.Show(
+                            $"環境變數已設定成功！\n\n" +
+                            $"DALAMUD_RUNTIME = {runtimePath}\n\n" +
+                            $"請關閉遊戲，然後重新從 Steam 啟動遊戲，\n" +
+                            $"再使用手動注入功能。",
+                            "設定成功",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Information);
+                    }
+                    catch (Exception envEx)
+                    {
+                        MessageBox.Show(
+                            $"設定環境變數失敗: {envEx.Message}\n\n" +
+                            $"請手動設定：\n" +
+                            $"變數名: DALAMUD_RUNTIME\n" +
+                            $"變數值: {runtimePath}",
+                            "設定失敗",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Error);
+                    }
+                }
+            }
+            else
+            {
+                MessageBox.Show(
+                    $"Dalamud 注入指令已執行！\n\nPID: {targetPid}\n\n" +
+                    $"注入器輸出:\n{outputInfo}\n\n" +
+                    "提示：\n" +
+                    "• 如果遊戲中沒有看到 Dalamud，請嘗試在遊戲剛啟動時（加載畫面）就進行注入\n" +
+                    "• 遊戲到達標題畫面後再注入可能會失敗\n" +
+                    "• 按 Insert 鍵可以開啟/關閉 Dalamud 設定介面",
+                    "注入完成",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }
         }
         catch (Exception ex)
         {

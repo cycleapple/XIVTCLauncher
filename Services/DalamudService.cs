@@ -625,14 +625,14 @@ public class DalamudService
         {
             "inject",
             gamePid.ToString(),
-            $"--dalamud-working-directory=\"{workingDirectory}\"",
-            $"--dalamud-configuration-path=\"{configurationPath}\"",
-            $"--dalamud-plugin-directory=\"{pluginDirectory}\"",
-            $"--dalamud-dev-plugin-directory=\"{devPluginDirectory}\"",
-            $"--dalamud-asset-directory=\"{assetDirectory}\"",
+            $"--dalamud-working-directory={workingDirectory}",
+            $"--dalamud-configuration-path={configurationPath}",
+            $"--dalamud-plugin-directory={pluginDirectory}",
+            $"--dalamud-asset-directory={assetDirectory}",
             $"--dalamud-client-language={language}",
             $"--dalamud-delay-initialize={delayInitializeMs}",
-            "--veh"
+            "--fix-acl",
+            "--se-debug-privilege"
         };
 
         if (safeMode)
@@ -641,7 +641,7 @@ public class DalamudService
         }
 
         var argumentString = string.Join(" ", launchArguments);
-        ReportStatus($"執行: Dalamud.Injector.exe inject {gamePid} --veh ...");
+        ReportStatus($"執行: Dalamud.Injector.exe inject {gamePid} --veh --dotnet-runtime=...");
 
         var psi = new ProcessStartInfo(runner.FullName)
         {
