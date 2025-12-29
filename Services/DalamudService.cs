@@ -451,7 +451,7 @@ public class DalamudService
                 pluginDirectory,
                 devPluginDirectory,
                 assetDir,
-                4, // Language: 4 = ChineseTraditional (Taiwan)
+                5, // Language: 5 = ChineseTraditional (Taiwan)
                 injectionDelay > 0 ? injectionDelay : 10000,
                 runtimePath
             );
@@ -783,7 +783,7 @@ public class DalamudService
                 pluginDirectory,
                 devPluginDirectory,
                 assetDir,
-                4, // Language: 4 = ChineseTraditional (Taiwan)
+                5, // Language: 5 = ChineseTraditional (Taiwan)
                 injectionDelay > 0 ? injectionDelay : 10000,
                 runtimePath
             );
