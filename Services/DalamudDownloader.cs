@@ -79,29 +79,53 @@ public class DalamudDownloader
     }
 
     /// <summary>
-    /// Fetch the latest release info from GitHub.
+    /// Fetch the latest release info from GitHub with retry mechanism.
     /// </summary>
-    public async Task<GitHubRelease?> FetchLatestReleaseAsync()
+    /// <param name="maxRetries">Maximum number of retry attempts (default: 3)</param>
+    /// <param name="initialDelayMs">Initial delay in milliseconds before first retry (default: 1000)</param>
+    public async Task<GitHubRelease?> FetchLatestReleaseAsync(int maxRetries = 3, int initialDelayMs = 1000)
     {
-        try
-        {
-            ReportStatus("檢查 Dalamud 更新...");
-            var json = await _httpClient.GetStringAsync(RELEASES_API_URL);
-            var release = JsonSerializer.Deserialize<GitHubRelease>(json);
+        Exception? lastException = null;
 
-            if (release != null)
+        for (int attempt = 0; attempt <= maxRetries; attempt++)
+        {
+            try
             {
-                LatestVersion = release.TagName;
-                ReportStatus($"最新 Dalamud 版本: {LatestVersion}");
-            }
+                if (attempt == 0)
+                {
+                    ReportStatus("檢查 Dalamud 更新...");
+                }
+                else
+                {
+                    var delayMs = initialDelayMs * (int)Math.Pow(2, attempt - 1); // Exponential backoff
+                    ReportStatus($"重試中 ({attempt}/{maxRetries})，等待 {delayMs / 1000.0:F1} 秒...");
+                    await Task.Delay(delayMs);
+                    ReportStatus($"重試取得 GitHub 資訊 ({attempt}/{maxRetries})...");
+                }
 
-            return release;
+                var json = await _httpClient.GetStringAsync(RELEASES_API_URL);
+                var release = JsonSerializer.Deserialize<GitHubRelease>(json);
+
+                if (release != null)
+                {
+                    LatestVersion = release.TagName;
+                    ReportStatus($"最新 Dalamud 版本: {LatestVersion}");
+                }
+
+                return release;
+            }
+            catch (Exception ex)
+            {
+                lastException = ex;
+                if (attempt < maxRetries)
+                {
+                    ReportStatus($"取得 GitHub 資訊失敗: {ex.Message}");
+                }
+            }
         }
-        catch (Exception ex)
-        {
-            ReportStatus($"檢查更新失敗: {ex.Message}");
-            return null;
-        }
+
+        ReportStatus($"檢查更新失敗 (已重試 {maxRetries} 次): {lastException?.Message}");
+        return null;
     }
 
     /// <summary>
@@ -225,38 +249,79 @@ public class DalamudDownloader
     }
 
     /// <summary>
-    /// Download a file with progress reporting.
+    /// Download a file with progress reporting and retry mechanism.
     /// </summary>
-    private async Task DownloadFileAsync(string url, string destinationPath)
+    /// <param name="url">URL to download from</param>
+    /// <param name="destinationPath">Local file path to save to</param>
+    /// <param name="maxRetries">Maximum number of retry attempts (default: 3)</param>
+    /// <param name="initialDelayMs">Initial delay in milliseconds before first retry (default: 2000)</param>
+    private async Task DownloadFileAsync(string url, string destinationPath, int maxRetries = 3, int initialDelayMs = 2000)
     {
-        ReportStatus($"下載中: {url}");
+        Exception? lastException = null;
 
-        using var response = await _httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
-
-        if (!response.IsSuccessStatusCode)
+        for (int attempt = 0; attempt <= maxRetries; attempt++)
         {
-            throw new HttpRequestException($"下載失敗: {response.StatusCode}");
-        }
-
-        var totalBytes = response.Content.Headers.ContentLength ?? -1;
-        var downloadedBytes = 0L;
-
-        using var contentStream = await response.Content.ReadAsStreamAsync();
-        using var fileStream = new FileStream(destinationPath, FileMode.Create, FileAccess.Write, FileShare.None, 81920, true);
-
-        var buffer = new byte[81920];
-        int bytesRead;
-
-        while ((bytesRead = await contentStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
-        {
-            await fileStream.WriteAsync(buffer, 0, bytesRead);
-            downloadedBytes += bytesRead;
-
-            if (totalBytes > 0)
+            try
             {
-                ReportProgress((double)downloadedBytes / totalBytes * 100);
+                if (attempt == 0)
+                {
+                    ReportStatus($"下載中...");
+                }
+                else
+                {
+                    var delayMs = initialDelayMs * (int)Math.Pow(2, attempt - 1); // Exponential backoff
+                    ReportStatus($"下載重試中 ({attempt}/{maxRetries})，等待 {delayMs / 1000.0:F1} 秒...");
+                    await Task.Delay(delayMs);
+                    ReportStatus($"重試下載 ({attempt}/{maxRetries})...");
+                }
+
+                // Clean up partial file from previous attempt
+                if (File.Exists(destinationPath))
+                {
+                    try { File.Delete(destinationPath); } catch { }
+                }
+
+                using var response = await _httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw new HttpRequestException($"下載失敗: {response.StatusCode}");
+                }
+
+                var totalBytes = response.Content.Headers.ContentLength ?? -1;
+                var downloadedBytes = 0L;
+
+                using var contentStream = await response.Content.ReadAsStreamAsync();
+                using var fileStream = new FileStream(destinationPath, FileMode.Create, FileAccess.Write, FileShare.None, 81920, true);
+
+                var buffer = new byte[81920];
+                int bytesRead;
+
+                while ((bytesRead = await contentStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                {
+                    await fileStream.WriteAsync(buffer, 0, bytesRead);
+                    downloadedBytes += bytesRead;
+
+                    if (totalBytes > 0)
+                    {
+                        ReportProgress((double)downloadedBytes / totalBytes * 100);
+                    }
+                }
+
+                // Download completed successfully
+                return;
+            }
+            catch (Exception ex)
+            {
+                lastException = ex;
+                if (attempt < maxRetries)
+                {
+                    ReportStatus($"下載失敗: {ex.Message}");
+                }
             }
         }
+
+        throw new HttpRequestException($"下載失敗 (已重試 {maxRetries} 次): {lastException?.Message}", lastException);
     }
 
     /// <summary>
