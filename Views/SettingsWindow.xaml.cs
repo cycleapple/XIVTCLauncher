@@ -127,6 +127,52 @@ public partial class SettingsWindow : Window
         }
     }
 
+    private void CleanEnvVarButton_Click(object sender, RoutedEventArgs e)
+    {
+        var currentValue = Environment.GetEnvironmentVariable("DALAMUD_RUNTIME", EnvironmentVariableTarget.User);
+        if (string.IsNullOrEmpty(currentValue))
+        {
+            MessageBox.Show(
+                "DALAMUD_RUNTIME 環境變數目前未設定，無需清除。",
+                "無需操作",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+            return;
+        }
+
+        var result = MessageBox.Show(
+            $"目前 DALAMUD_RUNTIME 環境變數值為：\n{currentValue}\n\n" +
+            $"清除後，手動注入功能（從 Steam 等外部啟動的遊戲）將無法使用，\n" +
+            $"但簡中版 Dalamud (ottercorp) 可恢復正常。\n\n" +
+            $"透過本啟動器登入啟動的遊戲不受影響。\n\n" +
+            $"確定要清除嗎？",
+            "清除環境變數",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Question);
+
+        if (result == MessageBoxResult.Yes)
+        {
+            try
+            {
+                Environment.SetEnvironmentVariable("DALAMUD_RUNTIME", null, EnvironmentVariableTarget.User);
+                MessageBox.Show(
+                    "DALAMUD_RUNTIME 環境變數已清除。\n\n" +
+                    "請重新啟動 Steam 或簡中啟動器以使變更生效。",
+                    "清除成功",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"清除失敗: {ex.Message}",
+                    "錯誤",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+        }
+    }
+
     private void SaveButton_Click(object sender, RoutedEventArgs e)
     {
         if (string.IsNullOrWhiteSpace(GamePathTextBox.Text))

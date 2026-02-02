@@ -767,6 +767,9 @@ public partial class MainViewModel : ObservableObject
                         $"從 Steam 或其他方式啟動的遊戲不會自動設定此變數。\n\n" +
                         $"是否要自動設定系統環境變數？\n" +
                         $"(設定後需完全關閉 Steam 再重新啟動)\n\n" +
+                        $"⚠ 注意：如果您同時使用簡中版 Dalamud（ottercorp），\n" +
+                        $"設定此變數可能導致簡中版 Dalamud 無法正常運作。\n" +
+                        $"如需恢復，請在本啟動器設定中清除此環境變數。\n\n" +
                         $"變數值: {runtimePath}",
                         "設定環境變數？",
                         MessageBoxButton.YesNo,
