@@ -387,7 +387,7 @@ public class LauncherRelease
     public string? Body { get; set; }
 
     [JsonPropertyName("published_at")]
-    public DateTime? PublishedAt { get; set; }
+    public string? PublishedAt { get; set; }
 
     [JsonPropertyName("assets")]
     public List<LauncherReleaseAsset>? Assets { get; set; }

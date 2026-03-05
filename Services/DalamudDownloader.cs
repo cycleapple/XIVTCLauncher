@@ -379,7 +379,7 @@ public class GitHubRelease
     public string? Name { get; set; }
 
     [System.Text.Json.Serialization.JsonPropertyName("published_at")]
-    public DateTime? PublishedAt { get; set; }
+    public string? PublishedAt { get; set; }
 
     [System.Text.Json.Serialization.JsonPropertyName("assets")]
     public List<GitHubAsset>? Assets { get; set; }
