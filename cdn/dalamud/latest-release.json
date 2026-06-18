@@ -1,0 +1,19 @@
+{
+  "tag_name": "25-12-26-01",
+  "name": "Release 25-12-26-01",
+  "published_at": "2025-12-26T08:43:58Z",
+  "assets": [
+    {
+      "name": "latest.7z",
+      "browser_download_url": "https://github.com/yanmucorp/Dalamud/releases/download/25-12-26-01/latest.7z",
+      "mirrors": [],
+      "size": 31060112
+    },
+    {
+      "name": "hashes.json",
+      "browser_download_url": "https://github.com/yanmucorp/Dalamud/releases/download/25-12-26-01/hashes.json",
+      "mirrors": [],
+      "size": 10137
+    }
+  ]
+}

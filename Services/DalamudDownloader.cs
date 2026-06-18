@@ -13,6 +13,12 @@ public class DalamudDownloader
 {
     // yanmucorp/Dalamud release API
     private const string RELEASES_API_URL = "https://api.github.com/repos/yanmucorp/Dalamud/releases/latest";
+    private static readonly string[] RELEASE_MANIFEST_URLS =
+    {
+        RELEASES_API_URL,
+        "https://cdn.jsdelivr.net/gh/cycleapple/XIVTCLauncher@main/cdn/dalamud/latest-release.json",
+        "https://fastly.jsdelivr.net/gh/cycleapple/XIVTCLauncher@main/cdn/dalamud/latest-release.json",
+    };
     private const string RELEASES_URL = "https://github.com/yanmucorp/Dalamud/releases";
 
     private readonly DirectoryInfo _dalamudDirectory;
@@ -103,8 +109,7 @@ public class DalamudDownloader
                     ReportStatus($"重試取得 GitHub 資訊 ({attempt}/{maxRetries})...");
                 }
 
-                var json = await _httpClient.GetStringAsync(RELEASES_API_URL);
-                var release = JsonSerializer.Deserialize<GitHubRelease>(json);
+                var release = await FetchReleaseFromAnySourceAsync();
 
                 if (release != null)
                 {
@@ -126,6 +131,44 @@ public class DalamudDownloader
 
         ReportStatus($"檢查更新失敗 (已重試 {maxRetries} 次): {lastException?.Message}");
         return null;
+    }
+
+    private async Task<GitHubRelease?> FetchReleaseFromAnySourceAsync()
+    {
+        Exception? lastException = null;
+
+        foreach (var url in RELEASE_MANIFEST_URLS)
+        {
+            try
+            {
+                ReportStatus($"Checking Dalamud release source: {GetSourceName(url)}");
+                var json = await _httpClient.GetStringAsync(url);
+                var release = JsonSerializer.Deserialize<GitHubRelease>(json);
+
+                if (string.IsNullOrWhiteSpace(release?.TagName))
+                    throw new InvalidDataException("release manifest is missing tag_name");
+
+                return release;
+            }
+            catch (Exception ex)
+            {
+                lastException = ex;
+                ReportStatus($"{GetSourceName(url)} release source failed: {ex.Message}");
+            }
+        }
+
+        throw new HttpRequestException($"Unable to fetch Dalamud release metadata from all sources: {lastException?.Message}", lastException);
+    }
+
+    private static string GetSourceName(string url)
+    {
+        if (url.Contains("api.github.com", StringComparison.OrdinalIgnoreCase))
+            return "GitHub";
+
+        if (url.Contains("jsdelivr.net", StringComparison.OrdinalIgnoreCase))
+            return "jsDelivr CDN";
+
+        return new Uri(url).Host;
     }
 
     /// <summary>
@@ -151,12 +194,19 @@ public class DalamudDownloader
     public async Task EnsureDalamudAsync()
     {
         LoadInstalledVersion();
+        var isInstalled = IsDalamudInstalled();
 
         // Check if already installed and up-to-date
-        if (IsDalamudInstalled() && !string.IsNullOrEmpty(InstalledVersion))
+        if (isInstalled)
         {
             var release = await FetchLatestReleaseAsync();
-            if (release != null && InstalledVersion == release.TagName)
+            if (release == null)
+            {
+                ReportStatus($"Dalamud release metadata unavailable; using installed version {InstalledVersion ?? "unknown"}.");
+                return;
+            }
+
+            if (!string.IsNullOrEmpty(InstalledVersion) && InstalledVersion == release.TagName)
             {
                 ReportStatus($"Dalamud {InstalledVersion} 已是最新版本");
                 return;
@@ -182,7 +232,9 @@ public class DalamudDownloader
         var asset = release.Assets?.FirstOrDefault(a =>
             a.Name?.Equals("latest.7z", StringComparison.OrdinalIgnoreCase) == true);
 
-        if (asset == null || string.IsNullOrEmpty(asset.BrowserDownloadUrl))
+        if (asset == null ||
+            (string.IsNullOrWhiteSpace(asset.BrowserDownloadUrl) &&
+             (asset.Mirrors == null || asset.Mirrors.Count == 0)))
         {
             throw new Exception("在發布資源中找不到 latest.7z");
         }
@@ -195,7 +247,7 @@ public class DalamudDownloader
         try
         {
             // Download the 7z file
-            await DownloadFileAsync(asset.BrowserDownloadUrl, tempFile);
+            await DownloadAssetAsync(asset, tempFile);
 
             // Clean existing installation
             if (_dalamudDirectory.Exists)
@@ -246,6 +298,36 @@ public class DalamudDownloader
         }
 
         await DownloadAndInstallAsync();
+    }
+
+    private async Task DownloadAssetAsync(GitHubAsset asset, string destinationPath)
+    {
+        var urls = new List<string>();
+
+        if (!string.IsNullOrWhiteSpace(asset.BrowserDownloadUrl))
+            urls.Add(asset.BrowserDownloadUrl);
+
+        if (asset.Mirrors != null)
+            urls.AddRange(asset.Mirrors.Where(url => !string.IsNullOrWhiteSpace(url)));
+
+        Exception? lastException = null;
+
+        foreach (var url in urls.Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            try
+            {
+                ReportStatus($"Downloading Dalamud from {GetSourceName(url)}...");
+                await DownloadFileAsync(url, destinationPath);
+                return;
+            }
+            catch (Exception ex)
+            {
+                lastException = ex;
+                ReportStatus($"{GetSourceName(url)} download failed: {ex.Message}");
+            }
+        }
+
+        throw new HttpRequestException($"Unable to download Dalamud from all sources: {lastException?.Message}", lastException);
     }
 
     /// <summary>
@@ -395,6 +477,9 @@ public class GitHubAsset
 
     [System.Text.Json.Serialization.JsonPropertyName("browser_download_url")]
     public string? BrowserDownloadUrl { get; set; }
+
+    [System.Text.Json.Serialization.JsonPropertyName("mirrors")]
+    public List<string>? Mirrors { get; set; }
 
     [System.Text.Json.Serialization.JsonPropertyName("size")]
     public long Size { get; set; }
