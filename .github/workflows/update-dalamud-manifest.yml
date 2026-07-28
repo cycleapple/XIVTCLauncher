@@ -1,0 +1,88 @@
+name: Update Dalamud CDN Manifest
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 */6 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Update manifest from yanmucorp/Dalamud latest release
+        id: update
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+
+          $manifestPath = "cdn/dalamud/latest-release.json"
+          $release = Invoke-RestMethod `
+            -Uri "https://api.github.com/repos/yanmucorp/Dalamud/releases/latest" `
+            -Headers @{ "User-Agent" = "XIVTCLauncher-manifest-updater" }
+
+          $requiredAssetNames = @("latest.7z", "hashes.json")
+          $assets = @()
+
+          foreach ($assetName in $requiredAssetNames) {
+            $asset = $release.assets | Where-Object { $_.name -eq $assetName } | Select-Object -First 1
+            if ($null -eq $asset) {
+              throw "Required asset '$assetName' was not found in release $($release.tag_name)."
+            }
+
+            $assets += [ordered]@{
+              name = $asset.name
+              browser_download_url = $asset.browser_download_url
+              mirrors = @()
+              size = $asset.size
+            }
+          }
+
+          $manifest = [ordered]@{
+            tag_name = $release.tag_name
+            name = $release.name
+            published_at = $release.published_at
+            assets = $assets
+          }
+
+          $newJson = ($manifest | ConvertTo-Json -Depth 10) + "`n"
+          $oldJson = if (Test-Path $manifestPath) { Get-Content -Raw -Path $manifestPath } else { "" }
+
+          if ($newJson -eq $oldJson) {
+            "changed=false" >> $env:GITHUB_OUTPUT
+            "latest_tag=$($release.tag_name)" >> $env:GITHUB_OUTPUT
+            Write-Host "Manifest already points to $($release.tag_name)."
+            exit 0
+          }
+
+          Set-Content -Path $manifestPath -Value $newJson -NoNewline -Encoding utf8NoBOM
+          "changed=true" >> $env:GITHUB_OUTPUT
+          "latest_tag=$($release.tag_name)" >> $env:GITHUB_OUTPUT
+          Write-Host "Updated manifest to $($release.tag_name)."
+
+      - name: Commit manifest update
+        if: steps.update.outputs.changed == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add cdn/dalamud/latest-release.json
+          git commit -m "chore: update Dalamud CDN manifest to ${{ steps.update.outputs.latest_tag }}"
+          git push
+
+      - name: Purge jsDelivr cache
+        if: steps.update.outputs.changed == 'true'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          Invoke-RestMethod `
+            -Uri "https://purge.jsdelivr.net/gh/cycleapple/XIVTCLauncher@main/cdn/dalamud/latest-release.json" `
+            -Headers @{ "User-Agent" = "XIVTCLauncher-manifest-updater" } |
+            ConvertTo-Json -Depth 10
