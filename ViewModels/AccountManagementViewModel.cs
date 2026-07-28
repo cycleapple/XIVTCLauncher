@@ -13,10 +13,14 @@ public partial class AccountManagementViewModel : ObservableObject
     private readonly SettingsService _settingsService;
     private readonly AccountService _accountService;
     private readonly OtpService _otpService;
+    private readonly ProfileService _profileService;
     private System.Timers.Timer? _otpRefreshTimer;
 
     [ObservableProperty]
     private ObservableCollection<Account> _accounts = new();
+
+    [ObservableProperty]
+    private ObservableCollection<DalamudProfileOption> _availableProfiles = new();
 
     [ObservableProperty]
     private Account? _selectedAccount;
@@ -47,6 +51,12 @@ public partial class AccountManagementViewModel : ObservableObject
     private string _editOtpSecret = string.Empty;
 
     [ObservableProperty]
+    private string _editDalamudProfileId = ProfileService.SharedProfileId;
+
+    [ObservableProperty]
+    private bool _createBlankProfileForNewAccount;
+
+    [ObservableProperty]
     private string _currentOtpCode = string.Empty;
 
     [ObservableProperty]
@@ -55,14 +65,28 @@ public partial class AccountManagementViewModel : ObservableObject
     [ObservableProperty]
     private bool _hasOtpConfigured;
 
+    public LauncherSettings Settings => _settings;
+
+    public string SelectedAccountProfileName
+    {
+        get
+        {
+            var profileId = SelectedAccount?.DalamudProfileId ?? ProfileService.SharedProfileId;
+            return AvailableProfiles.FirstOrDefault(option => option.Id == profileId)?.Name
+                ?? ProfileService.SharedProfileName;
+        }
+    }
+
     public AccountManagementViewModel(LauncherSettings settings)
     {
         _settings = settings;
         _settingsService = new SettingsService();
         _accountService = new AccountService();
         _otpService = new OtpService();
+        _profileService = new ProfileService();
 
         LoadAccounts();
+        RefreshProfiles();
     }
 
     private void LoadAccounts()
@@ -74,6 +98,7 @@ public partial class AccountManagementViewModel : ObservableObject
     partial void OnSelectedAccountChanged(Account? value)
     {
         StopOtpRefresh();
+        OnPropertyChanged(nameof(SelectedAccountProfileName));
 
         if (value != null)
         {
@@ -136,6 +161,8 @@ public partial class AccountManagementViewModel : ObservableObject
         EditRememberPassword = false;
         EditAutoOtp = false;
         EditOtpSecret = string.Empty;
+        EditDalamudProfileId = ProfileService.SharedProfileId;
+        CreateBlankProfileForNewAccount = false;
     }
 
     [RelayCommand]
@@ -151,6 +178,8 @@ public partial class AccountManagementViewModel : ObservableObject
         EditRememberPassword = SelectedAccount.RememberPassword;
         EditAutoOtp = SelectedAccount.AutoOtp;
         EditOtpSecret = string.Empty; // Don't show existing secret
+        EditDalamudProfileId = SelectedAccount.DalamudProfileId ?? ProfileService.SharedProfileId;
+        CreateBlankProfileForNewAccount = false;
     }
 
     [RelayCommand]
@@ -164,11 +193,29 @@ public partial class AccountManagementViewModel : ObservableObject
 
         if (IsAddingNew)
         {
+            string? profileId;
+            try
+            {
+                profileId = CreateBlankProfileForNewAccount
+                    ? CreateBlankProfileForCurrentAccount()
+                    : NormalizeProfileId(EditDalamudProfileId);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    ex.Message,
+                    "無法建立插件設定檔",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+                return;
+            }
+
             // Create new account
             var displayName = string.IsNullOrWhiteSpace(EditDisplayName) ? EditUsername : EditDisplayName;
             var newAccount = _accountService.AddAccount(_settings, displayName, EditUsername);
             newAccount.RememberPassword = EditRememberPassword;
             newAccount.AutoOtp = EditAutoOtp;
+            newAccount.DalamudProfileId = profileId;
 
             // Save password if provided and remember is enabled
             if (EditRememberPassword && !string.IsNullOrEmpty(EditPassword))
@@ -197,6 +244,7 @@ public partial class AccountManagementViewModel : ObservableObject
             SelectedAccount.Username = EditUsername;
             SelectedAccount.RememberPassword = EditRememberPassword;
             SelectedAccount.AutoOtp = EditAutoOtp;
+            SelectedAccount.DalamudProfileId = NormalizeProfileId(EditDalamudProfileId);
 
             // Update password if provided
             if (!string.IsNullOrEmpty(EditPassword))
@@ -253,6 +301,8 @@ public partial class AccountManagementViewModel : ObservableObject
         EditUsername = string.Empty;
         EditPassword = string.Empty;
         EditOtpSecret = string.Empty;
+        EditDalamudProfileId = ProfileService.SharedProfileId;
+        CreateBlankProfileForNewAccount = false;
     }
 
     [RelayCommand]
@@ -329,5 +379,86 @@ public partial class AccountManagementViewModel : ObservableObject
     public void Cleanup()
     {
         StopOtpRefresh();
+    }
+
+    public void RefreshProfiles()
+    {
+        AvailableProfiles = new ObservableCollection<DalamudProfileOption>(
+            _profileService.GetOptions(_settings));
+
+        if (!AvailableProfiles.Any(option => option.Id == EditDalamudProfileId))
+        {
+            EditDalamudProfileId = ProfileService.SharedProfileId;
+        }
+
+        OnPropertyChanged(nameof(SelectedAccountProfileName));
+    }
+
+    public void SetAccountProfile(Account account, string? profileId)
+    {
+        var normalizedProfileId = NormalizeProfileId(profileId);
+        if (string.Equals(
+                account.DalamudProfileId,
+                normalizedProfileId,
+                StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        account.DalamudProfileId = normalizedProfileId;
+        _settingsService.Save(_settings);
+
+        if (ReferenceEquals(account, SelectedAccount))
+        {
+            OnPropertyChanged(nameof(SelectedAccountProfileName));
+        }
+    }
+
+    private string CreateBlankProfileForCurrentAccount()
+    {
+        var accountName = string.IsNullOrWhiteSpace(EditDisplayName)
+            ? EditUsername.Trim()
+            : EditDisplayName.Trim();
+        if (string.IsNullOrWhiteSpace(accountName))
+        {
+            accountName = "新帳號";
+        }
+
+        const string nameSuffix = " 的插件設定";
+        var maximumAccountNameLength = 60 - nameSuffix.Length;
+        if (accountName.Length > maximumAccountNameLength)
+        {
+            accountName = accountName[..maximumAccountNameLength].TrimEnd();
+        }
+
+        var baseName = $"{accountName}{nameSuffix}";
+        var candidate = baseName;
+        var suffix = 2;
+        while (_settings.DalamudProfiles.Any(
+                   profile => string.Equals(
+                       profile.Name,
+                       candidate,
+                       StringComparison.CurrentCultureIgnoreCase)))
+        {
+            var numericSuffix = $" ({suffix++})";
+            var truncatedBaseName = baseName.Length + numericSuffix.Length > 60
+                ? baseName[..(60 - numericSuffix.Length)].TrimEnd()
+                : baseName;
+            candidate = $"{truncatedBaseName}{numericSuffix}";
+        }
+
+        var profile = _profileService.Create(_settings, candidate);
+        RefreshProfiles();
+        return profile.Id;
+    }
+
+    private string? NormalizeProfileId(string? profileId)
+    {
+        if (string.IsNullOrWhiteSpace(profileId))
+            return null;
+
+        return _settings.DalamudProfiles.Any(profile => profile.Id == profileId)
+            ? profileId
+            : null;
     }
 }

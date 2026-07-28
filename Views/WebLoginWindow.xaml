@@ -5,7 +5,9 @@
         Title="FFXIV 登入"
         Height="700" Width="500"
         WindowStartupLocation="CenterScreen"
-        ResizeMode="CanResize">
+        ResizeMode="CanResize"
+        Background="{DynamicResource AppBackgroundBrush}"
+        TextElement.Foreground="{DynamicResource AppTextPrimaryBrush}">
 
     <Grid>
         <Grid.RowDefinitions>
@@ -15,10 +17,10 @@
         </Grid.RowDefinitions>
 
         <!-- Status Bar -->
-        <Border Grid.Row="0" Background="#2D2D30" Padding="10">
+        <Border Grid.Row="0" Background="{DynamicResource AppSurfaceBrush}" Padding="10">
             <TextBlock x:Name="StatusText"
                        Text="載入中..."
-                       Foreground="White"
+                       Foreground="{DynamicResource AppTextPrimaryBrush}"
                        FontSize="12"/>
         </Border>
 
@@ -27,16 +29,18 @@
                       Grid.Row="1"/>
 
         <!-- Bottom Bar -->
-        <Border Grid.Row="2" Background="#2D2D30" Padding="10">
+        <Border Grid.Row="2" Background="{DynamicResource AppSurfaceBrush}" Padding="10">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button x:Name="CancelButton"
                         Content="取消"
                         Click="CancelButton_Click"
+                        Style="{StaticResource AppSecondaryButton}"
                         Padding="20,5"
                         Margin="0,0,10,0"/>
                 <Button x:Name="RefreshButton"
                         Content="重新整理"
                         Click="RefreshButton_Click"
+                        Style="{StaticResource AppPrimaryButton}"
                         Padding="20,5"/>
             </StackPanel>
         </Border>

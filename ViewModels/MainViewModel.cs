@@ -16,6 +16,7 @@ public partial class MainViewModel : ObservableObject
     private readonly LoginService _loginService;
     private readonly DalamudService _dalamudService;
     private readonly AccountService _accountService;
+    private readonly ProfileService _profileService;
     private readonly GameUpdateService _gameUpdateService;
     private readonly LauncherUpdateService _launcherUpdateService;
     private LauncherSettings _settings;
@@ -108,6 +109,7 @@ public partial class MainViewModel : ObservableObject
         _loginService = new LoginService();
         _dalamudService = new DalamudService();
         _accountService = new AccountService();
+        _profileService = new ProfileService();
         _gameUpdateService = new GameUpdateService();
         _launcherUpdateService = new LauncherUpdateService();
         _settings = _settingsService.Load();
@@ -402,6 +404,10 @@ public partial class MainViewModel : ObservableObject
             return;
         }
 
+        // Capture the account for the whole login/launch operation. UI account changes
+        // must not switch the profile of a launch that is already in progress.
+        var launchAccount = SelectedAccount;
+
         // 檢查是否有未完成的更新
         if (HasUpdate)
         {
@@ -443,19 +449,19 @@ public partial class MainViewModel : ObservableObject
         }
 
         // Load saved credentials for selected account
-        string? savedEmail = SelectedAccount.Username;
+        string? savedEmail = launchAccount.Username;
         string? savedPassword = null;
-        if (SelectedAccount.RememberPassword)
+        if (launchAccount.RememberPassword)
         {
-            savedPassword = _accountService.GetPassword(SelectedAccount.Id);
+            savedPassword = _accountService.GetPassword(launchAccount.Id);
         }
 
         // Initialize OTP service for this specific account if auto OTP is enabled
         OtpService? accountOtpService = null;
-        if (SelectedAccount.AutoOtp)
+        if (launchAccount.AutoOtp)
         {
             accountOtpService = new OtpService();
-            accountOtpService.InitializeForAccount(SelectedAccount.Id);
+            accountOtpService.InitializeForAccount(launchAccount.Id);
         }
 
         // Open WebView2 login window with saved credentials and auto OTP
@@ -463,29 +469,29 @@ public partial class MainViewModel : ObservableObject
             _settings.GamePath,
             savedEmail,
             savedPassword,
-            SelectedAccount.AutoOtp,
+            launchAccount.AutoOtp,
             accountOtpService);
         var dialogResult = webLoginWindow.ShowDialog();
 
         if (dialogResult == true && !string.IsNullOrEmpty(webLoginWindow.SessionId))
         {
             // Save credentials if user chose to remember
-            if (!string.IsNullOrEmpty(webLoginWindow.LastEmail) && SelectedAccount != null)
+            if (!string.IsNullOrEmpty(webLoginWindow.LastEmail))
             {
                 // Update account username if changed
-                if (SelectedAccount.Username != webLoginWindow.LastEmail)
+                if (launchAccount.Username != webLoginWindow.LastEmail)
                 {
-                    SelectedAccount.Username = webLoginWindow.LastEmail;
+                    launchAccount.Username = webLoginWindow.LastEmail;
                 }
-                SelectedAccount.RememberPassword = true;
-                _accountService.SavePassword(SelectedAccount.Id, webLoginWindow.LastPassword ?? "");
+                launchAccount.RememberPassword = true;
+                _accountService.SavePassword(launchAccount.Id, webLoginWindow.LastPassword ?? "");
                 _settingsService.Save(_settings);
             }
-            else if (webLoginWindow.LastEmail == null && SelectedAccount != null)
+            else if (webLoginWindow.LastEmail == null)
             {
                 // User unchecked remember me, clear saved password
-                _accountService.DeletePassword(SelectedAccount.Id);
-                SelectedAccount.RememberPassword = false;
+                _accountService.DeletePassword(launchAccount.Id);
+                launchAccount.RememberPassword = false;
                 _settingsService.Save(_settings);
             }
 
@@ -495,7 +501,7 @@ public partial class MainViewModel : ObservableObject
             {
                 if (_settings.EnableDalamud && _dalamudService.State == DalamudService.DalamudState.Ready)
                 {
-                    LaunchGameWithDalamud(webLoginWindow.SessionId);
+                    LaunchGameWithDalamud(webLoginWindow.SessionId, launchAccount);
                     // Don't close launcher immediately - let user see injection status
                     StatusMessage += "\n\n現在可以關閉啟動器了。";
                 }
@@ -517,7 +523,7 @@ public partial class MainViewModel : ObservableObject
         }
     }
 
-    private void LaunchGameWithDalamud(string sessionId)
+    private void LaunchGameWithDalamud(string sessionId, Account? account = null)
     {
         var gameExePath = System.IO.Path.Combine(_settings.GamePath, "game", "ffxiv_dx11.exe");
         var gameVersion = _loginService.GetGameVersion(_settings.GamePath);
@@ -559,7 +565,8 @@ public partial class MainViewModel : ObservableObject
             gameExePath,
             gameArgs,
             gameVersion,
-            _settings.DalamudInjectionDelay);
+            _settings.DalamudInjectionDelay,
+            _profileService.ResolvePaths(_settings, account));
     }
 
     [RelayCommand]
@@ -628,7 +635,7 @@ public partial class MainViewModel : ObservableObject
         {
             // Use a fake session ID - game will launch but disconnect at lobby
             var fakeSessionId = "TEST_SESSION_FOR_DALAMUD_INJECT";
-            LaunchGameWithDalamud(fakeSessionId);
+            LaunchGameWithDalamud(fakeSessionId, SelectedAccount);
             StatusMessage = "已使用 Dalamud 啟動遊戲！\n\n注意：使用測試 Session - 將會在大廳斷線。\n這僅用於測試 Dalamud 注入。";
         }
         catch (Exception ex)
@@ -725,7 +732,10 @@ public partial class MainViewModel : ObservableObject
 
         try
         {
-            var injectorOutput = await _dalamudService.InjectToProcessAsync(targetPid, _settings.DalamudInjectionDelay);
+            var injectorOutput = await _dalamudService.InjectToProcessAsync(
+                targetPid,
+                _settings.DalamudInjectionDelay,
+                _profileService.ResolvePaths(_settings, SelectedAccount));
             StatusMessage = $"Dalamud 注入指令已執行 (PID: {targetPid})";
 
             // 顯示詳細輸出以便診斷

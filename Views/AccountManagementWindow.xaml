@@ -6,7 +6,7 @@
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
         Title="帳號管理"
-        Height="550" Width="480"
+        Height="620" Width="720"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
         Background="{DynamicResource MaterialDesignPaper}"
@@ -30,7 +30,7 @@
             <materialDesign:PackIcon Kind="AccountMultiple"
                                      Width="28" Height="28"
                                      VerticalAlignment="Center"
-                                     Foreground="{DynamicResource PrimaryHueMidBrush}"/>
+                                     Foreground="{DynamicResource AppBrandAccentBrush}"/>
             <TextBlock Text="帳號管理"
                        Style="{StaticResource MaterialDesignHeadline6TextBlock}"
                        VerticalAlignment="Center"
@@ -56,7 +56,7 @@
                     <Button Grid.Row="0"
                             Content="+ 新增帳號"
                             Command="{Binding AddAccountCommand}"
-                            Style="{StaticResource MaterialDesignFlatButton}"
+                            Style="{StaticResource AppTertiaryButton}"
                             HorizontalAlignment="Stretch"
                             Margin="0,0,0,8"/>
 
@@ -66,13 +66,26 @@
                              Style="{StaticResource MaterialDesignListBox}">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <StackPanel Margin="4">
+                                <StackPanel Margin="4,6">
                                     <TextBlock Text="{Binding DisplayName}"
                                                FontWeight="Bold"
                                                FontSize="14"/>
                                     <TextBlock Text="{Binding Username}"
-                                               Foreground="Gray"
+                                               Foreground="{DynamicResource AppTextSecondaryBrush}"
                                                FontSize="11"/>
+                                    <TextBlock Text="插件設定檔"
+                                               Foreground="{DynamicResource AppTextSecondaryBrush}"
+                                               FontSize="10"
+                                               Margin="0,7,0,3"/>
+                                    <ComboBox ItemsSource="{Binding DataContext.AvailableProfiles, RelativeSource={RelativeSource AncestorType=Window}}"
+                                              DisplayMemberPath="Name"
+                                              SelectedValuePath="Id"
+                                              SelectedValue="{Binding DalamudProfileId, Mode=TwoWay, Converter={StaticResource NullToEmptyStringConverter}, UpdateSourceTrigger=PropertyChanged}"
+                                              SelectionChanged="AccountProfileComboBox_SelectionChanged"
+                                              Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                                              FontSize="12"
+                                              MinHeight="48"
+                                              ToolTip="切換這個帳號使用的 Dalamud 插件與設定"/>
                                 </StackPanel>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
@@ -106,17 +119,24 @@
                                        Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
                                        Margin="0,0,0,16"/>
 
-                            <TextBlock Text="顯示名稱"
-                                       Style="{StaticResource MaterialDesignCaptionTextBlock}"
-                                       Foreground="Gray"/>
+                             <TextBlock Text="顯示名稱"
+                                        Style="{StaticResource MaterialDesignCaptionTextBlock}"
+                                        Foreground="{DynamicResource AppTextSecondaryBrush}"/>
                             <TextBlock Text="{Binding SelectedAccount.DisplayName}"
                                        FontSize="14"
                                        Margin="0,0,0,12"/>
 
-                            <TextBlock Text="Email/帳號"
-                                       Style="{StaticResource MaterialDesignCaptionTextBlock}"
-                                       Foreground="Gray"/>
+                             <TextBlock Text="Email/帳號"
+                                        Style="{StaticResource MaterialDesignCaptionTextBlock}"
+                                        Foreground="{DynamicResource AppTextSecondaryBrush}"/>
                             <TextBlock Text="{Binding SelectedAccount.Username}"
+                                       FontSize="14"
+                                       Margin="0,0,0,12"/>
+
+                            <TextBlock Text="Dalamud 插件設定檔"
+                                       Style="{StaticResource MaterialDesignCaptionTextBlock}"
+                                       Foreground="{DynamicResource AppTextSecondaryBrush}"/>
+                            <TextBlock Text="{Binding SelectedAccountProfileName}"
                                        FontSize="14"
                                        Margin="0,0,0,12"/>
 
@@ -126,10 +146,10 @@
                                                          Margin="0,0,4,0">
                                     <materialDesign:PackIcon.Style>
                                         <Style TargetType="materialDesign:PackIcon">
-                                            <Setter Property="Foreground" Value="Green"/>
+                                            <Setter Property="Foreground" Value="{DynamicResource AppSuccessBrush}"/>
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding SelectedAccount.RememberPassword}" Value="False">
-                                                    <Setter Property="Foreground" Value="Gray"/>
+                                                    <Setter Property="Foreground" Value="{DynamicResource AppTextDisabledBrush}"/>
                                                 </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
@@ -138,11 +158,11 @@
                                 <TextBlock FontSize="12" VerticalAlignment="Center">
                                     <TextBlock.Style>
                                         <Style TargetType="TextBlock">
-                                            <Setter Property="Foreground" Value="Green"/>
+                                            <Setter Property="Foreground" Value="{DynamicResource AppSuccessBrush}"/>
                                             <Setter Property="Text" Value="密碼已儲存"/>
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding SelectedAccount.RememberPassword}" Value="False">
-                                                    <Setter Property="Foreground" Value="Gray"/>
+                                                    <Setter Property="Foreground" Value="{DynamicResource AppTextDisabledBrush}"/>
                                                     <Setter Property="Text" Value="密碼未儲存"/>
                                                 </DataTrigger>
                                             </Style.Triggers>
@@ -157,10 +177,10 @@
                                                          Margin="0,0,4,0">
                                     <materialDesign:PackIcon.Style>
                                         <Style TargetType="materialDesign:PackIcon">
-                                            <Setter Property="Foreground" Value="Green"/>
+                                            <Setter Property="Foreground" Value="{DynamicResource AppSuccessBrush}"/>
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding HasOtpConfigured}" Value="False">
-                                                    <Setter Property="Foreground" Value="Gray"/>
+                                                    <Setter Property="Foreground" Value="{DynamicResource AppTextDisabledBrush}"/>
                                                 </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
@@ -170,10 +190,10 @@
                                     <TextBlock.Style>
                                         <Style TargetType="TextBlock">
                                             <Setter Property="Text" Value="OTP 已設定"/>
-                                            <Setter Property="Foreground" Value="Green"/>
+                                            <Setter Property="Foreground" Value="{DynamicResource AppSuccessBrush}"/>
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding HasOtpConfigured}" Value="False">
-                                                    <Setter Property="Foreground" Value="Gray"/>
+                                                    <Setter Property="Foreground" Value="{DynamicResource AppTextDisabledBrush}"/>
                                                     <Setter Property="Text" Value="OTP 未設定"/>
                                                 </DataTrigger>
                                             </Style.Triggers>
@@ -189,19 +209,19 @@
                                     Margin="0,8,0,16"
                                     Visibility="{Binding HasOtpConfigured, Converter={StaticResource BoolToVisibility}}">
                                 <StackPanel>
-                                    <TextBlock Text="目前 OTP 驗證碼"
-                                               Style="{StaticResource MaterialDesignCaptionTextBlock}"
-                                               Foreground="Gray"/>
+                                     <TextBlock Text="目前 OTP 驗證碼"
+                                                Style="{StaticResource MaterialDesignCaptionTextBlock}"
+                                                Foreground="{DynamicResource AppTextSecondaryBrush}"/>
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="{Binding CurrentOtpCode}"
                                                    FontSize="24"
                                                    FontWeight="Bold"
                                                    FontFamily="Consolas"
-                                                   Foreground="{DynamicResource PrimaryHueMidBrush}"/>
-                                        <TextBlock Text="{Binding OtpSecondsRemaining, StringFormat=({0}s)}"
-                                                   FontSize="12"
-                                                   Foreground="Gray"
-                                                   VerticalAlignment="Center"
+                                                   Foreground="{DynamicResource AppBrandAccentBrush}"/>
+                                         <TextBlock Text="{Binding OtpSecondsRemaining, StringFormat=({0}s)}"
+                                                    FontSize="12"
+                                                    Foreground="{DynamicResource AppTextSecondaryBrush}"
+                                                    VerticalAlignment="Center"
                                                    Margin="8,0,0,0"/>
                                     </StackPanel>
                                 </StackPanel>
@@ -209,28 +229,25 @@
 
                             <!-- Action Buttons -->
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,8">
-                                <Button Content="編輯"
-                                        Command="{Binding EditAccountCommand}"
-                                        Style="{StaticResource MaterialDesignRaisedButton}"
-                                        Margin="0,0,8,0"/>
-                                <Button Content="刪除"
-                                        Command="{Binding DeleteAccountCommand}"
-                                        Style="{StaticResource MaterialDesignOutlinedButton}"
-                                        Foreground="Red"
-                                        BorderBrush="Red"/>
+                             <Button Content="編輯"
+                                     Command="{Binding EditAccountCommand}"
+                                     Style="{StaticResource AppPrimaryButton}"
+                                     Margin="0,0,8,0"/>
+                             <Button Content="刪除"
+                                     Command="{Binding DeleteAccountCommand}"
+                                     Style="{StaticResource AppDangerButton}"/>
                             </StackPanel>
 
-                            <Button Content="設為預設"
-                                    Command="{Binding SetAsDefaultCommand}"
-                                    Style="{StaticResource MaterialDesignFlatButton}"
-                                    Margin="0,4,0,0"/>
+                             <Button Content="設為預設"
+                                     Command="{Binding SetAsDefaultCommand}"
+                                     Style="{StaticResource AppTertiaryButton}"
+                                     Margin="0,4,0,0"/>
 
-                            <Button Content="清除 OTP 秘鑰"
-                                    Command="{Binding ClearOtpSecretCommand}"
-                                    Style="{StaticResource MaterialDesignFlatButton}"
-                                    Foreground="Orange"
-                                    Visibility="{Binding HasOtpConfigured, Converter={StaticResource BoolToVisibility}}"
-                                    Margin="0,4,0,0"/>
+                             <Button Content="清除 OTP 秘鑰"
+                                     Command="{Binding ClearOtpSecretCommand}"
+                                     Style="{StaticResource AppDangerTextButton}"
+                                     Visibility="{Binding HasOtpConfigured, Converter={StaticResource BoolToVisibility}}"
+                                     Margin="0,4,0,0"/>
                         </StackPanel>
                     </ScrollViewer>
 
@@ -272,6 +289,37 @@
 
                             <Separator Margin="0,0,0,16"/>
 
+                            <TextBlock Text="Dalamud 插件設定檔"
+                                       Style="{StaticResource MaterialDesignSubtitle2TextBlock}"
+                                       Margin="0,0,0,8"/>
+
+                            <ComboBox ItemsSource="{Binding AvailableProfiles}"
+                                      DisplayMemberPath="Name"
+                                      SelectedValuePath="Id"
+                                      SelectedValue="{Binding EditDalamudProfileId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                      IsEnabled="{Binding CreateBlankProfileForNewAccount, Converter={StaticResource InvertBoolConverter}}"
+                                      Margin="0,0,0,8"/>
+
+                            <CheckBox Content="為這個帳號建立空白插件設定檔"
+                                      IsChecked="{Binding CreateBlankProfileForNewAccount}"
+                                      Visibility="{Binding IsAddingNew, Converter={StaticResource BoolToVisibility}}"
+                                      Margin="0,4,0,4"/>
+
+                            <TextBlock Text="儲存帳號時會建立獨立且不含任何插件的設定檔。"
+                                       Foreground="{DynamicResource AppTextSecondaryBrush}"
+                                       FontSize="11"
+                                       TextWrapping="Wrap"
+                                       Visibility="{Binding IsAddingNew, Converter={StaticResource BoolToVisibility}}"
+                                       Margin="24,0,0,8"/>
+
+                            <Button Content="管理插件設定檔"
+                                     Click="ManageProfilesButton_Click"
+                                     Style="{StaticResource AppTertiaryButton}"
+                                     HorizontalAlignment="Left"
+                                     Margin="0,0,0,16"/>
+
+                            <Separator Margin="0,0,0,16"/>
+
                             <TextBlock Text="OTP 設定"
                                        Style="{StaticResource MaterialDesignSubtitle2TextBlock}"
                                        Margin="0,0,0,8"/>
@@ -286,21 +334,21 @@
                                      FontFamily="Consolas"
                                      Margin="0,0,0,8"/>
 
-                            <TextBlock Text="輸入新秘鑰以更新，留空則保留現有設定。"
-                                       Style="{StaticResource MaterialDesignCaptionTextBlock}"
-                                       Foreground="Gray"
+                             <TextBlock Text="輸入新秘鑰以更新，留空則保留現有設定。"
+                                        Style="{StaticResource MaterialDesignCaptionTextBlock}"
+                                        Foreground="{DynamicResource AppTextSecondaryBrush}"
                                        TextWrapping="Wrap"
                                        Margin="0,0,0,16"/>
 
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                <Button Content="儲存"
-                                        Command="{Binding SaveAccountCommand}"
-                                        Style="{StaticResource MaterialDesignRaisedButton}"
-                                        Margin="0,0,8,0"
-                                        Click="SaveButton_Click"/>
-                                <Button Content="取消"
-                                        Command="{Binding CancelEditCommand}"
-                                        Style="{StaticResource MaterialDesignOutlinedButton}"/>
+                                 <Button Content="儲存"
+                                         Command="{Binding SaveAccountCommand}"
+                                         Style="{StaticResource AppPrimaryButton}"
+                                         Margin="0,0,8,0"
+                                         Click="SaveButton_Click"/>
+                                 <Button Content="取消"
+                                         Command="{Binding CancelEditCommand}"
+                                         Style="{StaticResource AppSecondaryButton}"/>
                             </StackPanel>
                         </StackPanel>
                     </ScrollViewer>
@@ -322,12 +370,12 @@
                             </Style>
                         </StackPanel.Style>
 
-                        <materialDesign:PackIcon Kind="AccountQuestion"
-                                                 Width="48" Height="48"
-                                                 Foreground="Gray"
-                                                 HorizontalAlignment="Center"/>
-                        <TextBlock Text="選擇帳號或新增一個"
-                                   Foreground="Gray"
+                         <materialDesign:PackIcon Kind="AccountQuestion"
+                                                  Width="48" Height="48"
+                                                  Foreground="{DynamicResource AppTextDisabledBrush}"
+                                                  HorizontalAlignment="Center"/>
+                         <TextBlock Text="選擇帳號或新增一個"
+                                    Foreground="{DynamicResource AppTextSecondaryBrush}"
                                    TextAlignment="Center"
                                    Margin="0,8,0,0"/>
                     </StackPanel>
@@ -336,12 +384,21 @@
         </Grid>
 
         <!-- Footer -->
-        <Button Grid.Row="2"
-                Content="關閉"
-                Click="CloseButton_Click"
-                Style="{StaticResource MaterialDesignOutlinedButton}"
-                HorizontalAlignment="Right"
-                Margin="0,16,0,0"
-                Width="100"/>
+        <Grid Grid.Row="2" Margin="0,16,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0"
+                    Content="管理插件設定檔"
+                     Click="ManageProfilesButton_Click"
+                     Style="{StaticResource AppTertiaryButton}"
+                     HorizontalAlignment="Left"/>
+             <Button Grid.Column="1"
+                     Content="關閉"
+                     Click="CloseButton_Click"
+                     Style="{StaticResource AppSecondaryButton}"
+                     Width="100"/>
+        </Grid>
     </Grid>
 </Window>

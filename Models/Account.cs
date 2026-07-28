@@ -35,4 +35,9 @@ public class Account
     /// Whether to automatically generate OTP from stored secret.
     /// </summary>
     public bool AutoOtp { get; set; } = false;
+
+    /// <summary>
+    /// Optional Dalamud profile ID. Null/empty keeps using the legacy shared Config directory.
+    /// </summary>
+    public string? DalamudProfileId { get; set; }
 }

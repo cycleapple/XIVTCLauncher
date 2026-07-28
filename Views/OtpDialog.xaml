@@ -40,13 +40,13 @@
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center">
             <Button Content="確定"
                     Click="OkButton_Click"
-                    Style="{StaticResource MaterialDesignRaisedButton}"
+                    Style="{StaticResource AppPrimaryButton}"
                     Width="80"
                     Margin="0,0,16,0"/>
 
             <Button Content="取消"
                     Click="CancelButton_Click"
-                    Style="{StaticResource MaterialDesignOutlinedButton}"
+                    Style="{StaticResource AppSecondaryButton}"
                     Width="80"/>
         </StackPanel>
     </Grid>

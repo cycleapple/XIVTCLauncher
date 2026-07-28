@@ -35,7 +35,7 @@
                              Visibility="Collapsed"
                              Padding="16"
                              Margin="0,0,0,16"
-                             Background="{DynamicResource PrimaryHueMidBrush}">
+                             Background="{DynamicResource AppBrandSurfaceBrush}">
             <StackPanel>
                 <TextBlock Text="歡迎使用 XIV TC Launcher！"
                            FontWeight="Bold"
@@ -67,22 +67,22 @@
                 <Button Grid.Column="1"
                         Content="自動偵測"
                         Click="AutoDetectButton_Click"
-                        Style="{StaticResource MaterialDesignOutlinedButton}"
+                        Style="{StaticResource AppSecondaryButton}"
                         Margin="0,0,8,0"/>
 
                 <Button Grid.Column="2"
                         Content="瀏覽"
                         Click="BrowseButton_Click"
-                        Style="{StaticResource MaterialDesignOutlinedButton}"/>
+                        Style="{StaticResource AppSecondaryButton}"/>
             </Grid>
             <TextBlock Text="例如：E:\Program Files\USERJOY GAMES\FINAL FANTASY XIV TC"
                        FontSize="11"
-                       Foreground="Gray"
+                       Foreground="{DynamicResource AppTextSecondaryBrush}"
                        Margin="0,4,0,0"/>
 
             <TextBlock Text="OTP 設定已移至「帳號管理」，請在主視窗點擊帳號旁的齒輪按鈕。"
                        FontSize="11"
-                       Foreground="Orange"
+                       Foreground="{DynamicResource AppBrandAccentBrush}"
                        TextWrapping="Wrap"
                        Margin="0,8,0,0"/>
         </StackPanel>
@@ -116,7 +116,7 @@
                                    FontWeight="Medium"/>
                         <TextBlock Text="自動從 yanmucorp/Dalamud 下載最新版本"
                                    FontSize="11"
-                                   Foreground="Gray"/>
+                                   Foreground="{DynamicResource AppTextSecondaryBrush}"/>
                     </StackPanel>
                 </RadioButton>
 
@@ -129,7 +129,7 @@
                                    FontWeight="Medium"/>
                         <TextBlock Text="使用本地已編譯的 Dalamud"
                                    FontSize="11"
-                                   Foreground="Gray"/>
+                                   Foreground="{DynamicResource AppTextSecondaryBrush}"/>
                     </StackPanel>
                 </RadioButton>
 
@@ -151,7 +151,7 @@
                     <Button Grid.Column="1"
                             Content="瀏覽"
                             Click="BrowseLocalDalamud_Click"
-                            Style="{StaticResource MaterialDesignOutlinedButton}"/>
+                            Style="{StaticResource AppSecondaryButton}"/>
                 </Grid>
 
                 <!-- Injection Delay -->
@@ -178,7 +178,7 @@
                 <!-- Info text -->
                 <TextBlock Text="Dalamud 和 .NET Runtime 會在登入時自動下載/更新"
                            FontSize="11"
-                           Foreground="Gray"
+                           Foreground="{DynamicResource AppTextSecondaryBrush}"
                            Margin="0,12,0,0"
                            Visibility="{Binding IsChecked, ElementName=AutoDownloadRadio, Converter={StaticResource BooleanToVisibilityConverter}}"/>
 
@@ -187,11 +187,11 @@
                     <Button x:Name="CleanEnvVarButton"
                             Content="清除 Dalamud Runtime 環境變數"
                             Click="CleanEnvVarButton_Click"
-                            Style="{StaticResource MaterialDesignOutlinedButton}"
+                            Style="{StaticResource AppSecondaryButton}"
                             HorizontalAlignment="Left"/>
                     <TextBlock Text="如果同時使用簡中版 Dalamud (ottercorp)，清除此變數可恢復簡中版正常運作"
                                FontSize="11"
-                               Foreground="Gray"
+                               Foreground="{DynamicResource AppTextSecondaryBrush}"
                                TextWrapping="Wrap"
                                Margin="0,4,0,0"/>
                 </StackPanel>
@@ -203,7 +203,7 @@
             <Button x:Name="SaveButton"
                     Content="儲存"
                     Click="SaveButton_Click"
-                    Style="{StaticResource MaterialDesignRaisedButton}"
+                    Style="{StaticResource AppPrimaryButton}"
                     MinWidth="100"
                     Padding="16,8"
                     Margin="0,0,8,0"/>
@@ -211,7 +211,7 @@
             <Button x:Name="CancelButton"
                     Content="取消"
                     Click="CancelButton_Click"
-                    Style="{StaticResource MaterialDesignOutlinedButton}"
+                    Style="{StaticResource AppSecondaryButton}"
                     MinWidth="80"
                     Padding="16,8"/>
         </StackPanel>

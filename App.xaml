@@ -7,10 +7,89 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <materialDesign:BundledTheme BaseTheme="Dark" PrimaryColor="DeepPurple" SecondaryColor="Lime" />
+                <materialDesign:CustomColorTheme BaseTheme="Dark"
+                                                 PrimaryColor="#02D5D2"
+                                                 SecondaryColor="#02E7E4" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign2.Defaults.xaml" />
             </ResourceDictionary.MergedDictionaries>
+
+            <!-- XIV TC visual system: graphite surfaces, cyan brand accents, semantic states. -->
+            <SolidColorBrush x:Key="AppBackgroundBrush" Color="#292E2E" />
+            <SolidColorBrush x:Key="AppSurfaceBrush" Color="#3B4141" />
+            <SolidColorBrush x:Key="AppSurfaceElevatedBrush" Color="#454C4C" />
+            <SolidColorBrush x:Key="AppBrandPrimaryBrush" Color="#02D5D2" />
+            <SolidColorBrush x:Key="AppBrandAccentBrush" Color="#02E7E4" />
+            <SolidColorBrush x:Key="AppBrandSurfaceBrush" Color="#164B4B" />
+            <SolidColorBrush x:Key="AppOnBrandBrush" Color="#102626" />
+            <SolidColorBrush x:Key="AppTextPrimaryBrush" Color="#F4F7F7" />
+            <SolidColorBrush x:Key="AppTextSecondaryBrush" Color="#B8C1C1" />
+            <SolidColorBrush x:Key="AppTextDisabledBrush" Color="#7E8989" />
+            <SolidColorBrush x:Key="AppDividerBrush" Color="#667070" />
+            <SolidColorBrush x:Key="AppSuccessBrush" Color="#55C982" />
+            <SolidColorBrush x:Key="AppWarningBrush" Color="#FFB547" />
+            <SolidColorBrush x:Key="AppDangerBrush" Color="#FF6670" />
+
+            <!-- Override the Material surfaces used by existing cards and windows. -->
+            <SolidColorBrush x:Key="MaterialDesignPaper" Color="#292E2E" />
+            <SolidColorBrush x:Key="MaterialDesignCardBackground" Color="#3B4141" />
+            <SolidColorBrush x:Key="MaterialDesignBody" Color="#F4F7F7" />
+            <SolidColorBrush x:Key="MaterialDesignBodyLight" Color="#B8C1C1" />
+
+            <Style x:Key="AppPrimaryButton"
+                   TargetType="{x:Type Button}"
+                   BasedOn="{StaticResource MaterialDesignRaisedButton}">
+                <Setter Property="Background" Value="{DynamicResource AppBrandPrimaryBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource AppOnBrandBrush}" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="Padding" Value="18,8" />
+            </Style>
+
+            <Style x:Key="AppSecondaryButton"
+                   TargetType="{x:Type Button}"
+                   BasedOn="{StaticResource MaterialDesignOutlinedButton}">
+                <Setter Property="Foreground" Value="{DynamicResource AppBrandAccentBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource AppBrandPrimaryBrush}" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="Padding" Value="18,8" />
+            </Style>
+
+            <Style x:Key="AppTertiaryButton"
+                   TargetType="{x:Type Button}"
+                   BasedOn="{StaticResource MaterialDesignFlatButton}">
+                <Setter Property="Foreground" Value="{DynamicResource AppBrandAccentBrush}" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+            </Style>
+
+            <Style x:Key="AppWarningTextButton"
+                   TargetType="{x:Type Button}"
+                   BasedOn="{StaticResource MaterialDesignFlatButton}">
+                <Setter Property="Foreground" Value="{DynamicResource AppWarningBrush}" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+            </Style>
+
+            <Style x:Key="AppDangerButton"
+                   TargetType="{x:Type Button}"
+                   BasedOn="{StaticResource MaterialDesignOutlinedButton}">
+                <Setter Property="Foreground" Value="{DynamicResource AppDangerBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource AppDangerBrush}" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+            </Style>
+
+            <Style x:Key="AppDangerTextButton"
+                   TargetType="{x:Type Button}"
+                   BasedOn="{StaticResource MaterialDesignFlatButton}">
+                <Setter Property="Foreground" Value="{DynamicResource AppDangerBrush}" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+            </Style>
+
+            <Style x:Key="AppIconButton"
+                   TargetType="{x:Type Button}"
+                   BasedOn="{StaticResource MaterialDesignIconButton}">
+                <Setter Property="Foreground" Value="{DynamicResource AppBrandAccentBrush}" />
+            </Style>
+
             <converters:InvertBoolConverter x:Key="InvertBoolConverter" />
+            <converters:NullToEmptyStringConverter x:Key="NullToEmptyStringConverter" />
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         </ResourceDictionary>
     </Application.Resources>

@@ -20,8 +20,10 @@ public partial class SettingsWindow : Window
         // Copy settings (accounts are reference types, so they're shared)
         Settings = new LauncherSettings
         {
+            SchemaVersion = settings.SchemaVersion,
             Accounts = settings.Accounts,
             SelectedAccountId = settings.SelectedAccountId,
+            DalamudProfiles = settings.DalamudProfiles,
             GamePath = settings.GamePath,
             EnableDalamud = settings.EnableDalamud,
             DalamudInjectionDelay = settings.DalamudInjectionDelay,

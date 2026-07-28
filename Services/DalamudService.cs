@@ -358,7 +358,12 @@ public class DalamudService
     /// <summary>
     /// Launch game and inject Dalamud.
     /// </summary>
-    public Process? LaunchGameWithDalamud(string gameExePath, string gameArgs, string gameVersion, int injectionDelay = 0)
+    public Process? LaunchGameWithDalamud(
+        string gameExePath,
+        string gameArgs,
+        string gameVersion,
+        int injectionDelay = 0,
+        DalamudProfilePaths? profilePaths = null)
     {
         if (State != DalamudState.Ready || _runner == null)
             throw new InvalidOperationException("Dalamud 尚未準備就緒");
@@ -370,11 +375,13 @@ public class DalamudService
             ?? Path.Combine(_assetDirectory.FullName, "dev");
         Directory.CreateDirectory(assetDir);
 
-        var pluginDirectory = Path.Combine(_configDirectory.FullName, "installedPlugins");
-        var devPluginDirectory = Path.Combine(_configDirectory.FullName, "devPlugins");
-        var configPath = Path.Combine(_configDirectory.FullName, "dalamudConfig.json");
-        var logPath = Path.Combine(_configDirectory.FullName, "logs");
+        profilePaths ??= CreateSharedProfilePaths();
+        var pluginDirectory = profilePaths.InstalledPlugins;
+        var devPluginDirectory = profilePaths.DevPlugins;
+        var configPath = profilePaths.ConfigFile;
+        var logPath = profilePaths.Logs;
 
+        Directory.CreateDirectory(profilePaths.Root);
         Directory.CreateDirectory(pluginDirectory);
         Directory.CreateDirectory(devPluginDirectory);
         Directory.CreateDirectory(logPath);
@@ -748,7 +755,10 @@ public class DalamudService
     /// <param name="processId">目標遊戲進程 ID</param>
     /// <param name="injectionDelay">注入延遲 (毫秒)</param>
     /// <returns>注入器的輸出訊息</returns>
-    public async Task<string> InjectToProcessAsync(int processId, int injectionDelay = 0)
+    public async Task<string> InjectToProcessAsync(
+        int processId,
+        int injectionDelay = 0,
+        DalamudProfilePaths? profilePaths = null)
     {
         if (State != DalamudState.Ready || _runner == null)
             throw new InvalidOperationException("Dalamud 尚未準備就緒。請先呼叫 EnsureDalamudAsync()。");
@@ -775,11 +785,13 @@ public class DalamudService
                 ?? Path.Combine(_assetDirectory.FullName, "dev");
             Directory.CreateDirectory(assetDir);
 
-            var pluginDirectory = Path.Combine(_configDirectory.FullName, "installedPlugins");
-            var devPluginDirectory = Path.Combine(_configDirectory.FullName, "devPlugins");
-            var configPath = Path.Combine(_configDirectory.FullName, "dalamudConfig.json");
-            var logPath = Path.Combine(_configDirectory.FullName, "logs");
+            profilePaths ??= CreateSharedProfilePaths();
+            var pluginDirectory = profilePaths.InstalledPlugins;
+            var devPluginDirectory = profilePaths.DevPlugins;
+            var configPath = profilePaths.ConfigFile;
+            var logPath = profilePaths.Logs;
 
+            Directory.CreateDirectory(profilePaths.Root);
             Directory.CreateDirectory(pluginDirectory);
             Directory.CreateDirectory(devPluginDirectory);
             Directory.CreateDirectory(logPath);
@@ -818,5 +830,15 @@ public class DalamudService
             ReportStatus("Dalamud 注入完成");
             return output;
         });
+    }
+
+    private DalamudProfilePaths CreateSharedProfilePaths()
+    {
+        return new DalamudProfilePaths(
+            _configDirectory.FullName,
+            Path.Combine(_configDirectory.FullName, "dalamudConfig.json"),
+            Path.Combine(_configDirectory.FullName, "installedPlugins"),
+            Path.Combine(_configDirectory.FullName, "devPlugins"),
+            Path.Combine(_configDirectory.FullName, "logs"));
     }
 }

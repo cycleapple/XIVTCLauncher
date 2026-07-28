@@ -38,7 +38,7 @@
         <materialDesign:Card Grid.Row="0"
                              Margin="0,0,0,16"
                              Padding="12"
-                             Background="{DynamicResource PrimaryHueMidBrush}"
+                             Background="{DynamicResource AppBrandSurfaceBrush}"
                              Visibility="{Binding HasLauncherUpdate, Converter={StaticResource BoolToVisibility}}">
             <Grid>
                 <Grid.RowDefinitions>
@@ -79,7 +79,7 @@
                             <Button.Style>
                                 <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignFlatLightBgButton}">
                                     <Setter Property="Background" Value="White"/>
-                                    <Setter Property="Foreground" Value="{DynamicResource PrimaryHueMidBrush}"/>
+                                    <Setter Property="Foreground" Value="{DynamicResource AppBrandSurfaceBrush}"/>
                                 </Style>
                             </Button.Style>
                         </Button>
@@ -155,16 +155,16 @@
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="{Binding DisplayName}"/>
                             <TextBlock Text=" - "
-                                       Foreground="Gray"
+                                       Foreground="{DynamicResource AppTextSecondaryBrush}"
                                        FontSize="11"/>
                             <TextBlock Text="{Binding Username}"
-                                       Foreground="Gray"
+                                       Foreground="{DynamicResource AppTextSecondaryBrush}"
                                        FontSize="11"/>
                         </StackPanel>
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>
-            <Button Style="{StaticResource MaterialDesignIconButton}"
+            <Button Style="{StaticResource AppIconButton}"
                     Command="{Binding OpenAccountManagerCommand}"
                     ToolTip="管理帳號"
                     Margin="4,0,0,0">
@@ -175,7 +175,7 @@
         <!-- No Accounts Message -->
         <TextBlock Grid.Row="3"
                    Text="尚未設定帳號，請點擊右側按鈕新增"
-                   Foreground="Orange"
+                   Foreground="{DynamicResource AppWarningBrush}"
                    FontSize="12"
                    HorizontalAlignment="Center"
                    Margin="0,8,0,16">
@@ -197,7 +197,7 @@
                 <Button Content="登入"
                         Command="{Binding LoginCommand}"
                         IsEnabled="{Binding CanLogin}"
-                        Style="{StaticResource MaterialDesignRaisedButton}"
+                        Style="{StaticResource AppPrimaryButton}"
                         Width="140"
                         Height="40"
                         FontSize="16"
@@ -205,7 +205,7 @@
 
                 <Button Content="設定"
                         Command="{Binding OpenSettingsCommand}"
-                        Style="{StaticResource MaterialDesignOutlinedButton}"
+                        Style="{StaticResource AppSecondaryButton}"
                         Width="140"
                         Height="40"
                         FontSize="16"/>
@@ -214,16 +214,14 @@
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,12,0,0">
                 <Button Content="測試注入 (跳過登入)"
                         Command="{Binding TestInjectCommand}"
-                        Style="{StaticResource MaterialDesignFlatButton}"
-                        Foreground="Orange"
+                        Style="{StaticResource AppWarningTextButton}"
                         Height="32"
                         FontSize="12"
                         ToolTip="以假的 Session 啟動遊戲來測試 Dalamud 注入 (會在大廳斷線)"/>
 
                 <Button Content="手動注入 Dalamud"
                         Command="{Binding ManualInjectCommand}"
-                        Style="{StaticResource MaterialDesignFlatButton}"
-                        Foreground="#AB47BC"
+                        Style="{StaticResource AppTertiaryButton}"
                         Height="32"
                         FontSize="12"
                         Margin="8,0,0,0"
@@ -316,21 +314,21 @@
                             Margin="0,0,0,12">
                     <TextBlock Text="{Binding DownloadSpeed}"
                                FontSize="11"
-                               Foreground="Gray"/>
+                               Foreground="{DynamicResource AppTextSecondaryBrush}"/>
                     <TextBlock Text=" | "
                                FontSize="11"
-                               Foreground="Gray"
+                               Foreground="{DynamicResource AppTextSecondaryBrush}"
                                Visibility="{Binding IsUpdating, Converter={StaticResource BoolToVisibility}}"/>
                     <TextBlock Text="{Binding RemainingTime}"
                                FontSize="11"
-                               Foreground="Gray"/>
+                               Foreground="{DynamicResource AppTextSecondaryBrush}"/>
                     <TextBlock Text=" | "
                                FontSize="11"
-                               Foreground="Gray"
+                               Foreground="{DynamicResource AppTextSecondaryBrush}"
                                Visibility="{Binding IsUpdating, Converter={StaticResource BoolToVisibility}}"/>
                     <TextBlock Text="{Binding UpdateProgress, StringFormat={}{0:F1}%}"
                                FontSize="11"
-                               Foreground="Gray"/>
+                               Foreground="{DynamicResource AppTextSecondaryBrush}"/>
                 </StackPanel>
 
                 <!-- 按鈕 -->
@@ -345,7 +343,7 @@
                             FontSize="13"
                             Margin="0,0,12,0">
                         <Button.Style>
-                            <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
+                            <Style TargetType="Button" BasedOn="{StaticResource AppPrimaryButton}">
                                 <Setter Property="Visibility" Value="Visible"/>
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding IsUpdating}" Value="True">
@@ -365,7 +363,7 @@
                     <!-- 取消更新按鈕 -->
                     <Button Content="取消"
                             Command="{Binding CancelUpdateCommand}"
-                            Style="{StaticResource MaterialDesignOutlinedButton}"
+                            Style="{StaticResource AppSecondaryButton}"
                             Width="80"
                             Height="32"
                             FontSize="13"
@@ -378,7 +376,7 @@
                             FontSize="12"
                             Foreground="{DynamicResource PrimaryHueMidBrush}">
                         <Button.Style>
-                            <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignFlatButton}">
+                            <Style TargetType="Button" BasedOn="{StaticResource AppTertiaryButton}">
                                 <Setter Property="Visibility" Value="Collapsed"/>
                                 <Style.Triggers>
                                     <MultiDataTrigger>

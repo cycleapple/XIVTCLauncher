@@ -15,6 +15,8 @@ public enum DalamudSourceMode
 
 public class LauncherSettings
 {
+    public int SchemaVersion { get; set; } = 2;
+
     // === Multi-Account Support ===
 
     /// <summary>
@@ -26,6 +28,11 @@ public class LauncherSettings
     /// ID of the currently selected account.
     /// </summary>
     public string? SelectedAccountId { get; set; }
+
+    /// <summary>
+    /// Named Dalamud profiles. The legacy shared profile is implicit and is not stored here.
+    /// </summary>
+    public List<DalamudProfile> DalamudProfiles { get; set; } = new();
 
     // === Legacy fields (for migration, kept for backwards compatibility) ===
 

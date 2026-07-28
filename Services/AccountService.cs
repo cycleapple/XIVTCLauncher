@@ -92,6 +92,7 @@ public class AccountService
         existingAccount.RememberPassword = updatedAccount.RememberPassword;
         existingAccount.UseOtp = updatedAccount.UseOtp;
         existingAccount.AutoOtp = updatedAccount.AutoOtp;
+        existingAccount.DalamudProfileId = updatedAccount.DalamudProfileId;
     }
 
     /// <summary>

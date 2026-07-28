@@ -7,6 +7,7 @@ namespace FFXIVSimpleLauncher.Services;
 public class SettingsService
 {
     private readonly string _settingsPath;
+    private readonly ProfileService _profileService = new();
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         WriteIndented = true
@@ -36,6 +37,8 @@ public class SettingsService
         {
             var json = File.ReadAllText(_settingsPath);
             var settings = JsonSerializer.Deserialize<LauncherSettings>(json) ?? new LauncherSettings();
+            settings.Accounts ??= new List<Account>();
+            settings.DalamudProfiles ??= new List<DalamudProfile>();
 
             // Migration: Convert single account to multi-account
             if (settings.Accounts.Count == 0 && !string.IsNullOrEmpty(settings.Username))
@@ -44,10 +47,34 @@ public class SettingsService
                 Save(settings);
             }
 
+            settings.SchemaVersion = Math.Max(settings.SchemaVersion, 2);
+            _profileService.NormalizeBindings(settings);
             return settings;
         }
         catch
         {
+            var backupPath = $"{_settingsPath}.bak";
+            if (File.Exists(backupPath))
+            {
+                try
+                {
+                    var backupJson = File.ReadAllText(backupPath);
+                    var backup = JsonSerializer.Deserialize<LauncherSettings>(backupJson);
+                    if (backup != null)
+                    {
+                        backup.Accounts ??= new List<Account>();
+                        backup.DalamudProfiles ??= new List<DalamudProfile>();
+                        backup.SchemaVersion = Math.Max(backup.SchemaVersion, 2);
+                        _profileService.NormalizeBindings(backup);
+                        return backup;
+                    }
+                }
+                catch
+                {
+                    // Fall through to a clean settings object only when both files are unusable.
+                }
+            }
+
             return new LauncherSettings();
         }
     }
@@ -101,7 +128,20 @@ public class SettingsService
 
     public void Save(LauncherSettings settings)
     {
+        settings.SchemaVersion = Math.Max(settings.SchemaVersion, 2);
+        _profileService.NormalizeBindings(settings);
+
         var json = JsonSerializer.Serialize(settings, JsonOptions);
-        File.WriteAllText(_settingsPath, json);
+        var temporaryPath = $"{_settingsPath}.tmp";
+        var backupPath = $"{_settingsPath}.bak";
+
+        File.WriteAllText(temporaryPath, json);
+
+        if (File.Exists(_settingsPath))
+        {
+            File.Copy(_settingsPath, backupPath, overwrite: true);
+        }
+
+        File.Move(temporaryPath, _settingsPath, overwrite: true);
     }
 }
