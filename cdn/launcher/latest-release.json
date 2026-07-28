@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "tag_name": "v1.15.1",
+  "version": "1.15.1",
+  "name": "XIV TC Launcher v1.15.1",
+  "published_at": "2026-07-28T12:15:01Z",
+  "body": "修正 GitHub API rate limit 導致無法偵測更新，以及更新下載完成後未正確覆蓋舊版本的問題。",
+  "assets": [
+    {
+      "name": "XIVTCLauncher-v1.15.1.zip",
+      "browser_download_url": "https://github.com/cycleapple/XIVTCLauncher/releases/download/v1.15.1/XIVTCLauncher-v1.15.1.zip",
+      "size": 5775032,
+      "sha256": "e3ed39fdc26667c161d90f3a506fc9463b1e62dbf196b38afa6a200891122244"
+    }
+  ]
+}
