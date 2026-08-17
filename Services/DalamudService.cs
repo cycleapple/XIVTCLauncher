@@ -67,15 +67,20 @@ public class DalamudService
     public string? DalamudVersion => _dalamudDownloader.InstalledVersion;
 
     public DalamudService()
+        : this(Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "FFXIVSimpleLauncher",
+            "Dalamud"))
     {
-        var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var baseDir = Path.Combine(appDataPath, "FFXIVSimpleLauncher", "Dalamud");
+    }
 
-        _baseDirectory = new DirectoryInfo(baseDir);
-        _configDirectory = new DirectoryInfo(Path.Combine(baseDir, "Config"));
-        _runtimeDirectory = new DirectoryInfo(Path.Combine(baseDir, "Runtime"));
-        _assetDirectory = new DirectoryInfo(Path.Combine(baseDir, "Assets"));
-        _dalamudDirectory = new DirectoryInfo(Path.Combine(baseDir, "Injector"));
+    internal DalamudService(string baseDirectory)
+    {
+        _baseDirectory = new DirectoryInfo(baseDirectory);
+        _configDirectory = new DirectoryInfo(Path.Combine(baseDirectory, "Config"));
+        _runtimeDirectory = new DirectoryInfo(Path.Combine(baseDirectory, "Runtime"));
+        _assetDirectory = new DirectoryInfo(Path.Combine(baseDirectory, "Assets"));
+        _dalamudDirectory = new DirectoryInfo(Path.Combine(baseDirectory, "Injector"));
 
         // Initialize runtime manager
         _runtimeManager = new DotNetRuntimeManager(_runtimeDirectory, useCnMirror: true);
@@ -830,6 +835,63 @@ public class DalamudService
             ReportStatus("Dalamud 注入完成");
             return output;
         });
+    }
+
+    /// <summary>
+    /// Prepare an already installed Dalamud without contacting update servers.
+    /// This is intended as an explicit user-selected fallback when online preparation fails.
+    /// </summary>
+    public void PrepareExistingDalamud()
+    {
+        State = DalamudState.Checking;
+        ErrorMessage = null;
+
+        try
+        {
+            ReportStatus("驗證已安裝的 Dalamud...");
+            ValidateDalamudPath(GetEffectiveDalamudPath());
+
+            if (FindDotNetRuntime() == null)
+                throw new InvalidOperationException("找不到可用的 .NET Runtime。");
+
+            _currentAssetDirectory = FindCachedAssetDirectory()
+                ?? throw new InvalidOperationException("找不到已下載的 Dalamud 資源快取。");
+
+            State = DalamudState.Ready;
+            ReportStatus("已使用本機既有的 Dalamud，略過線上更新檢查。");
+        }
+        catch (Exception ex)
+        {
+            State = DalamudState.Failed;
+            ErrorMessage = ex.Message;
+            ReportStatus($"無法使用本機 Dalamud: {ex.Message}");
+            throw;
+        }
+    }
+
+    private DirectoryInfo? FindCachedAssetDirectory()
+    {
+        var candidates = new List<DirectoryInfo>();
+        var versionFile = Path.Combine(_assetDirectory.FullName, "asset.ver");
+
+        if (File.Exists(versionFile))
+        {
+            var version = File.ReadAllText(versionFile).Trim();
+            if (int.TryParse(version, out _))
+                candidates.Add(new DirectoryInfo(Path.Combine(_assetDirectory.FullName, version)));
+        }
+
+        candidates.Add(new DirectoryInfo(Path.Combine(_assetDirectory.FullName, "dev")));
+        candidates.AddRange(_assetDirectory
+            .GetDirectories()
+            .Where(directory => int.TryParse(directory.Name, out _))
+            .OrderByDescending(directory => directory.LastWriteTimeUtc));
+
+        return candidates
+            .GroupBy(directory => directory.FullName, StringComparer.OrdinalIgnoreCase)
+            .Select(group => group.First())
+            .FirstOrDefault(directory =>
+                directory.Exists && directory.EnumerateFiles("*", SearchOption.AllDirectories).Any());
     }
 
     private DalamudProfilePaths CreateSharedProfilePaths()

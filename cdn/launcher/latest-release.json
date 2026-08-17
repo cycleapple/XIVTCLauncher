@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
-  "tag_name": "v1.15.1",
-  "version": "1.15.1",
-  "name": "XIV TC Launcher v1.15.1",
-  "published_at": "2026-07-28T12:15:01Z",
-  "body": "修正 GitHub API rate limit 導致無法偵測更新，以及更新下載完成後未正確覆蓋舊版本的問題。",
+  "tag_name": "v1.15.2",
+  "version": "1.15.2",
+  "name": "XIV TC Launcher v1.15.2",
+  "published_at": "2026-08-17T16:10:57Z",
+  "body": "GitHub 或 Dalamud 更新來源無法連線時，可選擇使用本機既有的 Dalamud 繼續登入。",
   "assets": [
     {
-      "name": "XIVTCLauncher-v1.15.1.zip",
-      "browser_download_url": "https://github.com/cycleapple/XIVTCLauncher/releases/download/v1.15.1/XIVTCLauncher-v1.15.1.zip",
-      "size": 5775032,
-      "sha256": "e3ed39fdc26667c161d90f3a506fc9463b1e62dbf196b38afa6a200891122244"
+      "name": "XIVTCLauncher-v1.15.2.zip",
+      "browser_download_url": "https://github.com/cycleapple/XIVTCLauncher/releases/download/v1.15.2/XIVTCLauncher-v1.15.2.zip",
+      "size": 5776296,
+      "sha256": "732c02f39ef0e1d966a02b1b04b73f51ea123b369204e65150fd85697842b9fd"
     }
   ]
 }

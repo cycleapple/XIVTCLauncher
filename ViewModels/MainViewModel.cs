@@ -415,8 +415,12 @@ public partial class MainViewModel : ObservableObject
             return;
         }
 
+        // Keep this choice local to the current launch so a temporary online failure
+        // never changes the user's saved Dalamud preference.
+        var useDalamudForThisLaunch = _settings.EnableDalamud;
+
         // If Dalamud is enabled, ensure it's ready before login
-        if (_settings.EnableDalamud)
+        if (useDalamudForThisLaunch)
         {
             try
             {
@@ -432,19 +436,42 @@ public partial class MainViewModel : ObservableObject
             catch (Exception ex)
             {
                 var result = MessageBox.Show(
-                    $"準備 Dalamud 失敗: {ex.Message}\n\n是否不使用 Dalamud 啟動遊戲？",
+                    $"準備 Dalamud 失敗: {ex.Message}\n\n" +
+                    "是否使用本機已安裝的 Dalamud 繼續登入？\n\n" +
+                    "是：使用既有 Dalamud（略過線上更新）\n" +
+                    "否：不使用 Dalamud 啟動\n" +
+                    "取消：取消登入",
                     "Dalamud 錯誤",
-                    MessageBoxButton.YesNo,
+                    MessageBoxButton.YesNoCancel,
                     MessageBoxImage.Warning);
 
-                if (result != MessageBoxResult.Yes)
+                if (result == MessageBoxResult.Yes)
+                {
+                    try
+                    {
+                        _dalamudService.PrepareExistingDalamud();
+                    }
+                    catch (Exception fallbackException)
+                    {
+                        MessageBox.Show(
+                            $"無法使用本機既有的 Dalamud: {fallbackException.Message}\n\n" +
+                            "請重新登入並選擇「否」，即可不使用 Dalamud 啟動。",
+                            "Dalamud 錯誤",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Error);
+                        StatusMessage = $"無法使用本機 Dalamud: {fallbackException.Message}";
+                        return;
+                    }
+                }
+                else if (result == MessageBoxResult.No)
+                {
+                    useDalamudForThisLaunch = false;
+                }
+                else
                 {
                     StatusMessage = "啟動已取消";
                     return;
                 }
-
-                // Disable Dalamud for this launch
-                _settings.EnableDalamud = false;
             }
         }
 
@@ -499,7 +526,7 @@ public partial class MainViewModel : ObservableObject
 
             try
             {
-                if (_settings.EnableDalamud && _dalamudService.State == DalamudService.DalamudState.Ready)
+                if (useDalamudForThisLaunch && _dalamudService.State == DalamudService.DalamudState.Ready)
                 {
                     LaunchGameWithDalamud(webLoginWindow.SessionId, launchAccount);
                     // Don't close launcher immediately - let user see injection status
