@@ -1,17 +1,17 @@
 {
-  "tag_name": "26-07-28-02",
-  "name": "Release 26-07-28-02",
-  "published_at": "2026-07-28T12:57:56Z",
+  "tag_name": "26-10-03-01",
+  "name": "Release 26-10-03-01",
+  "published_at": "2026-10-03T03:20:09Z",
   "assets": [
     {
       "name": "latest.7z",
-      "browser_download_url": "https://github.com/yanmucorp/Dalamud/releases/download/26-07-28-02/latest.7z",
+      "browser_download_url": "https://github.com/yanmucorp/Dalamud/releases/download/26-10-03-01/latest.7z",
       "mirrors": [],
-      "size": 25135058
+      "size": 25133738
     },
     {
       "name": "hashes.json",
-      "browser_download_url": "https://github.com/yanmucorp/Dalamud/releases/download/26-07-28-02/hashes.json",
+      "browser_download_url": "https://github.com/yanmucorp/Dalamud/releases/download/26-10-03-01/hashes.json",
       "mirrors": [],
       "size": 6434
     }
