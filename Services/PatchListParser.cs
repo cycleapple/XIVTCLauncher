@@ -22,7 +22,7 @@ public class PatchListParser
 
     public PatchListParser()
     {
-        _httpClient = new HttpClient { Timeout = TimeSpan.FromMinutes(5) };
+        _httpClient = DownloadHttpClientFactory.Create(TimeSpan.FromMinutes(5));
         _httpClient.DefaultRequestHeaders.CacheControl = new CacheControlHeaderValue { NoCache = true };
         _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("XIVTCLauncher/1.0");
     }

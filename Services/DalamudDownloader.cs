@@ -40,7 +40,7 @@ public class DalamudDownloader
     public DalamudDownloader(DirectoryInfo dalamudDirectory)
     {
         _dalamudDirectory = dalamudDirectory;
-        _httpClient = new HttpClient { Timeout = TimeSpan.FromMinutes(30) };
+        _httpClient = DownloadHttpClientFactory.Create(TimeSpan.FromMinutes(30));
         _httpClient.DefaultRequestHeaders.CacheControl = new CacheControlHeaderValue { NoCache = true };
         _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("XIVTCLauncher/1.0");
         _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github.v3+json"));

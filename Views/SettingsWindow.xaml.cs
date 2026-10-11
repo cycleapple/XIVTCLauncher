@@ -25,6 +25,7 @@ public partial class SettingsWindow : Window
             SelectedAccountId = settings.SelectedAccountId,
             DalamudProfiles = settings.DalamudProfiles,
             GamePath = settings.GamePath,
+            DownloadDns = settings.DownloadDns,
             EnableDalamud = settings.EnableDalamud,
             DalamudInjectionDelay = settings.DalamudInjectionDelay,
             DalamudSourceMode = settings.DalamudSourceMode,
@@ -39,6 +40,7 @@ public partial class SettingsWindow : Window
 
         // Load settings into UI
         GamePathTextBox.Text = Settings.GamePath;
+        DownloadDnsComboBox.SelectedIndex = Enum.IsDefined(Settings.DownloadDns) ? (int)Settings.DownloadDns : 0;
         EnableDalamudCheckBox.IsChecked = Settings.EnableDalamud;
         InjectionDelayTextBox.Text = Settings.DalamudInjectionDelay.ToString();
         LocalDalamudPathTextBox.Text = Settings.LocalDalamudPath;
@@ -201,6 +203,7 @@ public partial class SettingsWindow : Window
         }
 
         Settings.GamePath = gamePath;
+        Settings.DownloadDns = (DownloadDnsProvider)DownloadDnsComboBox.SelectedIndex;
         Settings.EnableDalamud = EnableDalamudCheckBox.IsChecked ?? false;
         Settings.DalamudInjectionDelay = int.TryParse(InjectionDelayTextBox.Text, out var delay) ? delay : 0;
         Settings.DalamudSourceMode = AutoDownloadRadio.IsChecked == true
@@ -241,5 +244,32 @@ public partial class SettingsWindow : Window
     {
         DialogResult = false;
         Close();
+    }
+
+    private async void TestDownloadDns_Click(object sender, RoutedEventArgs e)
+    {
+        TestDownloadDnsButton.IsEnabled = false;
+        DownloadDnsComboBox.IsEnabled = false;
+        DownloadDnsTestResult.Text = "測試中…";
+        try
+        {
+            using var client = DownloadHttpClientFactory.Create(
+                (DownloadDnsProvider)DownloadDnsComboBox.SelectedIndex, TimeSpan.FromSeconds(30));
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("XIVTCLauncher/1.0");
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            using var response = await client.GetAsync(
+                "https://raw.githubusercontent.com/cycleapple/XIVTCLauncher/main/cdn/launcher/latest-release.json");
+            response.EnsureSuccessStatusCode();
+            DownloadDnsTestResult.Text = $"GitHub 連線成功（{watch.ElapsedMilliseconds} ms）。此測試不代表大型檔案下載速度。";
+        }
+        catch (Exception ex)
+        {
+            DownloadDnsTestResult.Text = $"連線失敗：{ex.Message}";
+        }
+        finally
+        {
+            TestDownloadDnsButton.IsEnabled = true;
+            DownloadDnsComboBox.IsEnabled = true;
+        }
     }
 }

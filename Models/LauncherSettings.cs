@@ -1,5 +1,12 @@
 namespace FFXIVSimpleLauncher.Models;
 
+public enum DownloadDnsProvider
+{
+    System = 0,
+    Cloudflare = 1,
+    Google = 2
+}
+
 public enum DalamudSourceMode
 {
     /// <summary>
@@ -15,6 +22,7 @@ public enum DalamudSourceMode
 
 public class LauncherSettings
 {
+    public DownloadDnsProvider DownloadDns { get; set; } = DownloadDnsProvider.System;
     public int SchemaVersion { get; set; } = 2;
 
     // === Multi-Account Support ===

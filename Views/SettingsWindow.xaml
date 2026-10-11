@@ -11,6 +11,24 @@
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         FontFamily="{materialDesign:MaterialDesignFont}">
 
+    <DockPanel Background="{DynamicResource MaterialDesignPaper}">
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="24,16,24,24">
+            <Button x:Name="SaveButton"
+                    Content="儲存"
+                    Click="SaveButton_Click"
+                    Style="{StaticResource AppPrimaryButton}"
+                    MinWidth="100"
+                    Padding="16,8"
+                    Margin="0,0,8,0"/>
+
+            <Button x:Name="CancelButton"
+                    Content="取消"
+                    Click="CancelButton_Click"
+                    Style="{StaticResource AppSecondaryButton}"
+                    MinWidth="80"
+                    Padding="16,8"/>
+        </StackPanel>
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
     <Grid Margin="24">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>  <!-- Row 0: Title -->
@@ -51,6 +69,21 @@
 
         <!-- Game Path -->
         <StackPanel Grid.Row="2">
+            <TextBlock Text="下載 DNS" FontWeight="Medium" Margin="0,0,0,8"/>
+            <ComboBox x:Name="DownloadDnsComboBox" SelectedIndex="0" Margin="0,0,0,8"
+                      AutomationProperties.Name="下載 DNS">
+                <ComboBoxItem Content="系統預設"/>
+                <ComboBoxItem Content="Cloudflare（1.1.1.1）"/>
+                <ComboBoxItem Content="Google（8.8.8.8）"/>
+            </ComboBox>
+            <TextBlock Text="套用於啟動器、Dalamud、Runtime 與遊戲更新下載。儲存後重開啟動器生效，不影響 Windows DNS、登入網頁或遊戲內插件連線。"
+                       TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}"/>
+            <TextBlock Text="Cloudflare／Google 使用加密 DNS 並直接連線，不經系統 Proxy；需要 Proxy 時請選系統預設。"
+                       TextWrapping="Wrap" FontSize="11" Margin="0,4,0,8" Foreground="{DynamicResource AppTextSecondaryBrush}"/>
+            <Button x:Name="TestDownloadDnsButton" Content="測試 GitHub 連線" Click="TestDownloadDns_Click"
+                    HorizontalAlignment="Left" Style="{StaticResource AppSecondaryButton}"/>
+            <TextBlock x:Name="DownloadDnsTestResult" TextWrapping="Wrap" FontSize="11" Margin="0,8,0,20"
+                       Foreground="{DynamicResource AppTextSecondaryBrush}"/>
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -198,22 +231,8 @@
             </StackPanel>
         </StackPanel>
 
-        <!-- Buttons -->
-        <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
-            <Button x:Name="SaveButton"
-                    Content="儲存"
-                    Click="SaveButton_Click"
-                    Style="{StaticResource AppPrimaryButton}"
-                    MinWidth="100"
-                    Padding="16,8"
-                    Margin="0,0,8,0"/>
 
-            <Button x:Name="CancelButton"
-                    Content="取消"
-                    Click="CancelButton_Click"
-                    Style="{StaticResource AppSecondaryButton}"
-                    MinWidth="80"
-                    Padding="16,8"/>
-        </StackPanel>
     </Grid>
+    </ScrollViewer>
+    </DockPanel>
 </Window>

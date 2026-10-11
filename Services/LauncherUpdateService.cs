@@ -59,7 +59,7 @@ public class LauncherUpdateService
 
     private static HttpClient CreateHttpClient()
     {
-        var client = new HttpClient { Timeout = TimeSpan.FromMinutes(10) };
+        var client = DownloadHttpClientFactory.Create(TimeSpan.FromMinutes(10));
         client.DefaultRequestHeaders.CacheControl = new CacheControlHeaderValue { NoCache = true };
         client.DefaultRequestHeaders.UserAgent.ParseAdd("XIVTCLauncher/1.15");
         client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));

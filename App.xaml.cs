@@ -19,6 +19,7 @@ public partial class App : Application
             return;
         }
 
+        DownloadHttpClientFactory.Provider = new SettingsService().Load().DownloadDns;
         var mainWindow = new MainWindow();
         MainWindow = mainWindow;
         mainWindow.Show();

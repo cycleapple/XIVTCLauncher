@@ -138,6 +138,17 @@ dotnet publish -c Release -r win-x64 --self-contained false
 
 設定檔儲存於 `%APPDATA%/FFXIVSimpleLauncher/settings.json`
 
+### 下載 DNS
+
+在「設定 → 下載 DNS」選擇「系統預設」、Cloudflare（1.1.1.1）或 Google（8.8.8.8）。
+可先按「測試 GitHub 連線」測試目前選項，儲存後重新開啟啟動器生效。
+
+- 預設沿用系統 DNS 與 Proxy；舊版設定升級後維持此行為。
+- Cloudflare／Google 使用 DNS over HTTPS，透過服務商 IP 建立連線，保留正常的 HTTPS 憑證驗證；不依賴系統 DNS 解析服務商名稱。
+- 套用於啟動器更新、Dalamud、Assets、.NET Runtime 與遊戲更新下載。不修改 Windows DNS，不套用於登入網頁、登入 API、遊戲或遊戲內插件。
+- 自訂 DNS 模式使用直接連線，不經系統 Proxy。需要 Proxy 時請選「系統預設」。解析失敗會回報錯誤，不會偷偷改用系統 DNS。
+- DNS 無法保證改善路由壅塞。連線測試只驗證 GitHub Raw HTTPS 存取，不代表 Release 安裝包的下載速度。
+
 ### 遊戲路徑
 
 台灣版 FFXIV 預設安裝路徑：

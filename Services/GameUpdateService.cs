@@ -52,7 +52,7 @@ public class GameUpdateService
         _patchListParser = new PatchListParser();
         _patchListParser.StatusChanged += status => StatusChanged?.Invoke(status);
 
-        _httpClient = new HttpClient { Timeout = TimeSpan.FromMinutes(30) };
+        _httpClient = DownloadHttpClientFactory.Create(TimeSpan.FromMinutes(30));
         _httpClient.DefaultRequestHeaders.CacheControl = new CacheControlHeaderValue { NoCache = true };
         _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("XIVTCLauncher/1.0");
 
@@ -160,7 +160,7 @@ public class GameUpdateService
         ReportStatus($"檢查伺服器版本...");
 
         // 使用獨立的 HttpClient
-        using var patchClient = new HttpClient();
+        using var patchClient = DownloadHttpClientFactory.Create();
 
         using var request = new HttpRequestMessage(HttpMethod.Post, url);
         request.Headers.Add("X-Hash-Check", "enabled");

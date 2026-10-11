@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
-  "tag_name": "v1.15.2",
-  "version": "1.15.2",
-  "name": "XIV TC Launcher v1.15.2",
-  "published_at": "2026-08-17T16:10:57Z",
-  "body": "GitHub 或 Dalamud 更新來源無法連線時，可選擇使用本機既有的 Dalamud 繼續登入。",
+  "tag_name": "v1.16.0",
+  "version": "1.16.0",
+  "name": "XIV TC Launcher v1.16.0",
+  "published_at": "2026-10-11T09:34:42Z",
+  "body": "新增下載 DNS 設定，可選系統預設、Cloudflare 或 Google，並測試 GitHub 連線。",
   "assets": [
     {
-      "name": "XIVTCLauncher-v1.15.2.zip",
-      "browser_download_url": "https://github.com/cycleapple/XIVTCLauncher/releases/download/v1.15.2/XIVTCLauncher-v1.15.2.zip",
-      "size": 5776296,
-      "sha256": "732c02f39ef0e1d966a02b1b04b73f51ea123b369204e65150fd85697842b9fd"
+      "name": "XIVTCLauncher-v1.16.0.zip",
+      "browser_download_url": "https://github.com/cycleapple/XIVTCLauncher/releases/download/v1.16.0/XIVTCLauncher-v1.16.0.zip",
+      "size": 5783574,
+      "sha256": "a68c69e6dbd423452170016d9b8da7aee3e8a097919c5977ca4d3dfeb9bd11d1"
     }
   ]
 }

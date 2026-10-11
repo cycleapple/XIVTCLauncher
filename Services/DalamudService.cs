@@ -203,7 +203,7 @@ public class DalamudService
 
     private async Task EnsureAssetsAsync()
     {
-        using var client = new HttpClient { Timeout = TimeSpan.FromMinutes(5) };
+        using var client = DownloadHttpClientFactory.Create(TimeSpan.FromMinutes(5));
         client.DefaultRequestHeaders.CacheControl = new CacheControlHeaderValue { NoCache = true };
 
         ReportStatus("取得資源資訊...");
@@ -298,7 +298,7 @@ public class DalamudService
 
     private async Task DownloadFileAsync(string url, string destinationPath)
     {
-        using var client = new HttpClient { Timeout = TimeSpan.FromMinutes(30) };
+        using var client = DownloadHttpClientFactory.Create(TimeSpan.FromMinutes(30));
 
         using var response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
         response.EnsureSuccessStatusCode();
