@@ -9,6 +9,7 @@ namespace FFXIVSimpleLauncher.Views;
 
 public partial class SettingsWindow : Window
 {
+    private void GitHubRoutes_Click(object sender, RoutedEventArgs e) => new GitHubRouteWindow { Owner = this }.ShowDialog();
     public LauncherSettings Settings { get; private set; }
     private readonly bool _isFirstRun;
 
@@ -246,30 +247,4 @@ public partial class SettingsWindow : Window
         Close();
     }
 
-    private async void TestDownloadDns_Click(object sender, RoutedEventArgs e)
-    {
-        TestDownloadDnsButton.IsEnabled = false;
-        DownloadDnsComboBox.IsEnabled = false;
-        DownloadDnsTestResult.Text = "測試中…";
-        try
-        {
-            using var client = DownloadHttpClientFactory.Create(
-                (DownloadDnsProvider)DownloadDnsComboBox.SelectedIndex, TimeSpan.FromSeconds(30));
-            client.DefaultRequestHeaders.UserAgent.ParseAdd("XIVTCLauncher/1.0");
-            var watch = System.Diagnostics.Stopwatch.StartNew();
-            using var response = await client.GetAsync(
-                "https://raw.githubusercontent.com/cycleapple/XIVTCLauncher/main/cdn/launcher/latest-release.json");
-            response.EnsureSuccessStatusCode();
-            DownloadDnsTestResult.Text = $"GitHub 連線成功（{watch.ElapsedMilliseconds} ms）。此測試不代表大型檔案下載速度。";
-        }
-        catch (Exception ex)
-        {
-            DownloadDnsTestResult.Text = $"連線失敗：{ex.Message}";
-        }
-        finally
-        {
-            TestDownloadDnsButton.IsEnabled = true;
-            DownloadDnsComboBox.IsEnabled = true;
-        }
-    }
 }

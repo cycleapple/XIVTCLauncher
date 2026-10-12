@@ -20,6 +20,12 @@ public partial class App : Application
         }
 
         DownloadHttpClientFactory.Provider = new SettingsService().Load().DownloadDns;
+        if (GitHubRouteElevation.TryHandle(e.Args, out var routeExitCode))
+        {
+            Shutdown(routeExitCode);
+            return;
+        }
+
         var mainWindow = new MainWindow();
         MainWindow = mainWindow;
         mainWindow.Show();

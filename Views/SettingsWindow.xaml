@@ -69,21 +69,26 @@
 
         <!-- Game Path -->
         <StackPanel Grid.Row="2">
-            <TextBlock Text="下載 DNS" FontWeight="Medium" Margin="0,0,0,8"/>
-            <ComboBox x:Name="DownloadDnsComboBox" SelectedIndex="0" Margin="0,0,0,8"
-                      AutomationProperties.Name="下載 DNS">
-                <ComboBoxItem Content="系統預設"/>
-                <ComboBoxItem Content="Cloudflare（1.1.1.1）"/>
-                <ComboBoxItem Content="Google（8.8.8.8）"/>
-            </ComboBox>
-            <TextBlock Text="套用於啟動器、Dalamud、Runtime 與遊戲更新下載。儲存後重開啟動器生效，不影響 Windows DNS、登入網頁或遊戲內插件連線。"
-                       TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}"/>
-            <TextBlock Text="Cloudflare／Google 使用加密 DNS 並直接連線，不經系統 Proxy；需要 Proxy 時請選系統預設。"
-                       TextWrapping="Wrap" FontSize="11" Margin="0,4,0,8" Foreground="{DynamicResource AppTextSecondaryBrush}"/>
-            <Button x:Name="TestDownloadDnsButton" Content="測試 GitHub 連線" Click="TestDownloadDns_Click"
-                    HorizontalAlignment="Left" Style="{StaticResource AppSecondaryButton}"/>
-            <TextBlock x:Name="DownloadDnsTestResult" TextWrapping="Wrap" FontSize="11" Margin="0,8,0,20"
-                       Foreground="{DynamicResource AppTextSecondaryBrush}"/>
+            <TextBlock Text="網路設定" FontWeight="Medium" Margin="0,0,0,8"/>
+            <Button Content="GitHub 下載加速…" Click="GitHubRoutes_Click" HorizontalAlignment="Left"
+                    Margin="0,0,0,8" Style="{StaticResource AppSecondaryButton}"/>
+            <TextBlock Text="插件清單載入很久，或插件下載很慢？檢測目前的下載連線，嘗試找出速度更好的連線。"
+                       TextWrapping="Wrap" FontSize="12" Foreground="{DynamicResource AppTextSecondaryBrush}"/>
+            <Expander Header="進階設定" Margin="0,12,0,20">
+                <StackPanel Margin="0,8,0,0">
+                    <TextBlock Text="啟動器下載 DNS" FontWeight="Medium" Margin="0,0,0,8"/>
+                    <ComboBox x:Name="DownloadDnsComboBox" SelectedIndex="0" Margin="0,0,0,8"
+                              AutomationProperties.Name="啟動器下載 DNS">
+                        <ComboBoxItem Content="系統預設"/>
+                        <ComboBoxItem Content="Cloudflare（1.1.1.1）"/>
+                        <ComboBoxItem Content="Google（8.8.8.8）"/>
+                    </ComboBox>
+                    <TextBlock Text="僅影響啟動器的更新與下載，儲存後重開啟動器生效，不修改 Windows DNS。已套用的 GitHub 加速連線優先使用。"
+                               TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource AppTextSecondaryBrush}"/>
+                    <TextBlock Text="Cloudflare／Google 使用加密 DNS 並直接連線；需要系統 Proxy 時請選系統預設。"
+                               TextWrapping="Wrap" FontSize="11" Margin="0,4,0,0" Foreground="{DynamicResource AppTextSecondaryBrush}"/>
+                </StackPanel>
+            </Expander>
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>

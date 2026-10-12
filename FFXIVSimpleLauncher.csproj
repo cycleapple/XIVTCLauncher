@@ -6,9 +6,9 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
-    <Version>1.16.0</Version>
-    <AssemblyVersion>1.16.0.0</AssemblyVersion>
-    <FileVersion>1.16.0.0</FileVersion>
+    <Version>1.17.0</Version>
+    <AssemblyVersion>1.17.0.0</AssemblyVersion>
+    <FileVersion>1.17.0.0</FileVersion>
     <ApplicationIcon>Resources\app.ico</ApplicationIcon>
   </PropertyGroup>
 
@@ -23,6 +23,10 @@
   <ItemGroup>
     <Compile Remove="tests\**\*.cs" />
     <None Remove="tests\**\*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="licenses\fastly-hosts-adjust.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
-  "tag_name": "v1.16.0",
-  "version": "1.16.0",
-  "name": "XIV TC Launcher v1.16.0",
-  "published_at": "2026-10-11T09:34:42Z",
-  "body": "新增下載 DNS 設定，可選系統預設、Cloudflare 或 Google，並測試 GitHub 連線。",
+  "tag_name": "v1.17.0",
+  "version": "1.17.0",
+  "name": "XIV TC Launcher v1.17.0",
+  "published_at": "2026-10-12T05:48:44Z",
+  "body": "新增 GitHub 下載加速：完整搜尋並比較連線，支援套用與還原。檢測顯示動態進度、目前步驟與耗時；下載 DNS 移至進階設定。",
   "assets": [
     {
-      "name": "XIVTCLauncher-v1.16.0.zip",
-      "browser_download_url": "https://github.com/cycleapple/XIVTCLauncher/releases/download/v1.16.0/XIVTCLauncher-v1.16.0.zip",
-      "size": 5783574,
-      "sha256": "a68c69e6dbd423452170016d9b8da7aee3e8a097919c5977ca4d3dfeb9bd11d1"
+      "name": "XIVTCLauncher-v1.17.0.zip",
+      "browser_download_url": "https://github.com/cycleapple/XIVTCLauncher/releases/download/v1.17.0/XIVTCLauncher-v1.17.0.zip",
+      "size": 5895461,
+      "sha256": "4b9e4c8d72cf6902e327741632dfba6d3bc2bfaafb56e6d2ff7147781c0d6d1d"
     }
   ]
 }

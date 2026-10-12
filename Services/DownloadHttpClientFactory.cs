@@ -27,8 +27,12 @@ internal static class DownloadHttpClientFactory
                 UseProxy = false,
                 ConnectTimeout = TimeSpan.FromSeconds(25),
                 PooledConnectionLifetime = TimeSpan.FromMinutes(2),
-                ConnectCallback = async (context, ct) => await ConnectAsync(
-                    await resolver.ResolveAsync(context.DnsEndPoint.Host, ct), context.DnsEndPoint.Port, ct)
+                ConnectCallback = async (context, ct) =>
+                {
+                    var managed = GitHubHostsStore.ManagedAddress(context.DnsEndPoint.Host);
+                    return await ConnectAsync(managed != null ? new[] { managed } :
+                        await resolver.ResolveAsync(context.DnsEndPoint.Host, ct), context.DnsEndPoint.Port, ct);
+                }
             });
         }
 

@@ -140,14 +140,29 @@ dotnet publish -c Release -r win-x64 --self-contained false
 
 ### 下載 DNS
 
-在「設定 → 下載 DNS」選擇「系統預設」、Cloudflare（1.1.1.1）或 Google（8.8.8.8）。
-可先按「測試 GitHub 連線」測試目前選項，儲存後重新開啟啟動器生效。
+在「設定 → 進階設定 → 啟動器下載 DNS」選擇「系統預設」、Cloudflare（1.1.1.1）或 Google（8.8.8.8）。
+儲存後重新開啟啟動器生效。一般使用者可先使用「GitHub 下載加速」檢測下載速度。
 
 - 預設沿用系統 DNS 與 Proxy；舊版設定升級後維持此行為。
 - Cloudflare／Google 使用 DNS over HTTPS，透過服務商 IP 建立連線，保留正常的 HTTPS 憑證驗證；不依賴系統 DNS 解析服務商名稱。
 - 套用於啟動器更新、Dalamud、Assets、.NET Runtime 與遊戲更新下載。不修改 Windows DNS，不套用於登入網頁、登入 API、遊戲或遊戲內插件。
 - 自訂 DNS 模式使用直接連線，不經系統 Proxy。需要 Proxy 時請選「系統預設」。解析失敗會回報錯誤，不會偷偷改用系統 DNS。
-- DNS 無法保證改善路由壅塞。連線測試只驗證 GitHub Raw HTTPS 存取，不代表 Release 安裝包的下載速度。
+- DNS 無法保證改善路由壅塞；GitHub 下載速度可使用下方的「GitHub 下載加速」功能檢測。
+
+### GitHub 下載加速
+
+在「設定 → GitHub 下載加速」按「檢測下載速度」，會完整搜尋 Fastly 官方範圍內的候選位址，驗證 GitHub HTTPS，並與目前系統路線交錯測試三輪 Raw 與 Release 下載。
+主畫面顯示目前與建議連線的速度比較；IP、每條路線成功次數及 Raw 回應時間收於進階詳情。候選路線必須各輪成功、至少 3 Mbps，且比穩定的目前路線快至少 25%，才會提供套用建議。
+
+- 檢測時顯示動態進度條、目前步驟與已耗時。不修改設定，支援取消；完整檢測最多取樣約 30 MB 安裝包資料，另有 HTTPS 等連線開銷。
+- 套用會要求管理員權限，並再次驗證位址屬於 Fastly 且能提供兩個 GitHub 網域的 HTTPS 內容。
+- 只在 Windows hosts 寫入 XIVTCLauncher 標記區塊，指定 `raw.githubusercontent.com` 和 `release-assets.githubusercontent.com`。修改前保留 `hosts.xivtc-github.bak`；還原只移除自己的區塊，保留其他內容。
+- 遇到其他工具設定相同網域時拒絕覆蓋，請先使用原工具還原。需要系統 Proxy 的網路不適合本功能的直接連線測試。
+- 系統 hosts 可涵蓋遊戲內使用系統解析的 Dalamud；啟動器的自訂 DoH 對這兩個網域也會優先使用自己的 hosts 區塊。其他網域維持原 DNS 選擇。
+- 套用或還原後請完整重開啟動器與遊戲。換網路或速度變慢時重新檢測；不會在每次登入自動掃描或修改。
+- 不涵蓋 `github.com`、`api.github.com` 或其他插件作者的網站，不保證改善所有網路問題。
+
+節點探索方式參考 [AFAlimru/fastly-hosts-adjust](https://github.com/AFAlimru/fastly-hosts-adjust)，MIT 授權聲明隨發布包附於 `licenses/fastly-hosts-adjust.txt`。
 
 ### 遊戲路徑
 

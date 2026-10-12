@@ -1,0 +1,51 @@
+<Window x:Class="FFXIVSimpleLauncher.Views.GitHubRouteWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="GitHub 下載加速" Width="700" Height="650" MinWidth="550" MinHeight="480"
+        WindowStartupLocation="CenterOwner" Background="{DynamicResource MaterialDesignPaper}"
+        TextElement.Foreground="{DynamicResource MaterialDesignBody}">
+    <DockPanel Margin="24" Background="{DynamicResource MaterialDesignPaper}">
+        <Button DockPanel.Dock="Bottom" Content="關閉" HorizontalAlignment="Right" Margin="0,16,0,0"
+                Click="Close_Click" Style="{StaticResource AppSecondaryButton}"/>
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <TextBlock Text="GitHub 下載加速" FontSize="22" Margin="0,0,0,12"/>
+                <TextBlock Text="插件清單載入很久，或插件下載很慢？&#10;檢測目前的下載連線，並嘗試找出速度更好的連線。"
+                           TextWrapping="Wrap"/>
+                <TextBlock Text="適用於啟動器與遊戲內 Dalamud 的部分 GitHub 下載。實際速度可能隨網路狀況改變。"
+                           TextWrapping="Wrap" Margin="0,8,0,12"/>
+                <TextBlock x:Name="CurrentState" TextWrapping="Wrap" Foreground="{DynamicResource AppBrandAccentBrush}"/>
+                <WrapPanel Margin="0,16,0,8">
+                    <Button x:Name="TestButton" Content="檢測下載速度" Click="Test_Click" Margin="0,0,8,8" Style="{StaticResource AppPrimaryButton}"/>
+                    <Button x:Name="CancelTestButton" Content="取消測試" Click="CancelTest_Click" IsEnabled="False" Margin="0,0,8,8" Style="{StaticResource AppSecondaryButton}"/>
+                    <Button x:Name="ApplyButton" Content="套用較快連線" Click="Apply_Click" IsEnabled="False" Margin="0,0,8,8" Style="{StaticResource AppSecondaryButton}"/>
+                    <Button x:Name="RestoreButton" Content="恢復預設連線" Click="Restore_Click" Margin="0,0,0,8" Style="{StaticResource AppSecondaryButton}"/>
+                </WrapPanel>
+                <TextBlock Text="檢測會完整搜尋可用連線，約需 1–4 分鐘，最多下載約 30 MB 測試資料，另有連線開銷。不會變更設定，可隨時取消。"
+                           TextWrapping="Wrap" FontSize="12" Foreground="{DynamicResource AppTextSecondaryBrush}"/>
+                <Border x:Name="BusyPanel" Visibility="Collapsed" Margin="0,16,0,0" Padding="14"
+                        BorderBrush="{DynamicResource AppBrandAccentBrush}" BorderThickness="1" CornerRadius="6">
+                    <StackPanel>
+                        <TextBlock x:Name="BusyStage" TextWrapping="Wrap" FontSize="16" FontWeight="SemiBold"/>
+                        <ProgressBar x:Name="BusyProgress" Height="8" Margin="0,12,0,10"
+                                     Foreground="{DynamicResource AppBrandAccentBrush}"/>
+                        <TextBlock x:Name="BusyElapsed" Foreground="{DynamicResource AppTextSecondaryBrush}"/>
+                    </StackPanel>
+                </Border>
+                <TextBlock x:Name="ProgressText" TextWrapping="Wrap" FontSize="15" Margin="0,16,0,16"/>
+                <TextBlock Text="套用時需要管理員權限，也會影響其他程式的 GitHub 下載。完成後請重新開啟啟動器與遊戲，隨時可以恢復。"
+                           TextWrapping="Wrap" FontSize="12" Margin="0,0,0,16" Foreground="{DynamicResource AppTextSecondaryBrush}"/>
+                <Expander Header="檢測詳情" Margin="0,0,0,12">
+                    <StackPanel Margin="0,8,0,0">
+                        <TextBlock Text="透過系統 hosts 指定 raw.githubusercontent.com 與 release-assets.githubusercontent.com 的位址。只移除本工具設定即可還原；啟動器 DNS 選項位於上一頁的進階設定。"
+                                   TextWrapping="Wrap" FontSize="12" Margin="0,12,0,8"/>
+                        <TextBlock x:Name="CurrentDetails" TextWrapping="Wrap"/>
+                        <TextBlock x:Name="TechnicalProgress" TextWrapping="Wrap" Margin="0,8,0,8"/>
+                        <TextBox x:Name="ResultsText" IsReadOnly="True" TextWrapping="Wrap" BorderThickness="0"
+                                 Background="Transparent" VerticalScrollBarVisibility="Auto"/>
+                    </StackPanel>
+                </Expander>
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</Window>
