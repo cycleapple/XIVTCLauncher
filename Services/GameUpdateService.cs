@@ -85,6 +85,9 @@ public class GameUpdateService
 
             var baseVersion = result.LocalVersions[0];
 
+            // Startup already checks versions; clean locally even when the update server is offline.
+            await Task.Run(() => PatchCacheCleaner.Clean(_patchDirectory.FullName, result.LocalVersions));
+
             // 顯示所有本地版本
             var versionInfo = string.Join(", ", result.LocalVersions.Select(kv => $"ex{kv.Key}={kv.Value}"));
             ReportStatus($"本地版本: {versionInfo}");
@@ -295,6 +298,15 @@ public class GameUpdateService
             {
                 return false;
             }
+
+            // Cleanup is best effort and must never turn a successful update into a failure.
+            ReportStatus("清理已安裝的更新包...");
+            await Task.Run(() =>
+            {
+                try { PatchCacheCleaner.Clean(_patchDirectory.FullName, _patchListParser.GetLocalVersions(gamePath)); }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+                { Debug.WriteLine($"Patch cache cleanup skipped: {ex.Message}"); }
+            });
 
             // Phase 3: 完成
             State = UpdateState.Completed;
@@ -534,8 +546,6 @@ public class GameUpdateService
                 // 更新版本檔案
                 UpdateVersionFile(gamePath, patch);
 
-                // 刪除補丁檔案 (可選)
-                // patchFile.Delete();
             }
             catch (Exception ex)
             {

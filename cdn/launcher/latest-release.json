@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
-  "tag_name": "v1.17.0",
-  "version": "1.17.0",
-  "name": "XIV TC Launcher v1.17.0",
-  "published_at": "2026-10-12T05:48:44Z",
-  "body": "新增 GitHub 下載加速：完整搜尋並比較連線，支援套用與還原。檢測顯示動態進度、目前步驟與耗時；下載 DNS 移至進階設定。",
+  "tag_name": "v1.17.1",
+  "version": "1.17.1",
+  "name": "XIV TC Launcher v1.17.1",
+  "published_at": "2026-10-21T20:26:02Z",
+  "body": "遊戲更新成功後自動清理已安裝的更新包；啟動時也會依本地版本清理舊包，保留尚未安裝的更新包，避免快取持續佔用空間。",
   "assets": [
     {
-      "name": "XIVTCLauncher-v1.17.0.zip",
-      "browser_download_url": "https://github.com/cycleapple/XIVTCLauncher/releases/download/v1.17.0/XIVTCLauncher-v1.17.0.zip",
-      "size": 5895461,
-      "sha256": "4b9e4c8d72cf6902e327741632dfba6d3bc2bfaafb56e6d2ff7147781c0d6d1d"
+      "name": "XIVTCLauncher-v1.17.1.zip",
+      "browser_download_url": "https://github.com/cycleapple/XIVTCLauncher/releases/download/v1.17.1/XIVTCLauncher-v1.17.1.zip",
+      "size": 5896844,
+      "sha256": "5a5a6e7d9a3d981d0d89b83c545db0bd1225717ff271dd5010505f63a437ef19"
     }
   ]
 }
