@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
-  "tag_name": "v1.18.0",
-  "version": "1.18.0",
-  "name": "XIV TC Launcher v1.18.0",
-  "published_at": "2026-10-22T05:02:04Z",
-  "body": "新增「略過遊戲更新檢查（Patch Server）」進階選項，可略過啟動及登入時的更新伺服器請求；預設關閉，保留正常登入驗證與更新包清理。",
+  "tag_name": "v1.19.0",
+  "version": "1.19.0",
+  "name": "XIV TC Launcher v1.19.0",
+  "published_at": "2026-10-22T09:54:55Z",
+  "body": "新增連線診斷與可複製報告。更新伺服器檢查失敗但大廳可連線時，以紅綠燈顯示狀態，提供本次略過更新檢查並登入，不修改永久設定。",
   "assets": [
     {
-      "name": "XIVTCLauncher-v1.18.0.zip",
-      "browser_download_url": "https://github.com/cycleapple/XIVTCLauncher/releases/download/v1.18.0/XIVTCLauncher-v1.18.0.zip",
-      "size": 5897793,
-      "sha256": "83e1f7177fa2008b33712aa70342e31909c2486e6ea703e98facd54236acc8d8"
+      "name": "XIVTCLauncher-v1.19.0.zip",
+      "browser_download_url": "https://github.com/cycleapple/XIVTCLauncher/releases/download/v1.19.0/XIVTCLauncher-v1.19.0.zip",
+      "size": 5909816,
+      "sha256": "bba7b2162bd11e27c14598141e7885082286c0148756771f821d6a8c5a27b7ba"
     }
   ]
 }

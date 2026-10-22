@@ -24,6 +24,10 @@ public partial class MainViewModel : ObservableObject
     // 更新相關的狀態
     private UpdateCheckResult? _updateCheckResult;
     private CancellationTokenSource? _updateCheckCancellation;
+    private bool _skipPatchForThisLogin;
+
+    [ObservableProperty]
+    private bool _canSkipPatchOnce;
 
     [ObservableProperty]
     private bool _isLoggingIn;
@@ -295,6 +299,7 @@ public partial class MainViewModel : ObservableObject
         using var checkCancellation = new CancellationTokenSource();
         _updateCheckCancellation = checkCancellation;
         var skipPatchServerCheck = _settings.SkipPatchServerCheck;
+        CanSkipPatchOnce = false;
         if (string.IsNullOrWhiteSpace(_settings.GamePath))
         {
             _updateCheckCancellation = null;
@@ -320,6 +325,19 @@ public partial class MainViewModel : ObservableObject
             {
                 StatusMessage = $"無法確認遊戲版本：{result.ErrorMessage}";
                 CanLogin = result.LocalVersions.ContainsKey(0);
+                if (result.PatchServerCheckFailed && !skipPatchServerCheck)
+                {
+                    StatusMessage = "Patch Server 檢查失敗，正在確認遊戲大廳連線…";
+                    var lobby = await ConnectionDiagnostics.RunAsync(
+                        new ConnectionProbe("遊戲大廳", "neolobby01.ffxiv.com.tw", Port: 54994),
+                        DownloadDnsProvider.System, checkCancellation.Token);
+                    checkCancellation.Token.ThrowIfCancellationRequested();
+                    CanSkipPatchOnce = ConnectionDiagnostics.CanOfferTemporaryBypass(result, lobby.Success);
+                    CanLogin = false;
+                    StatusMessage = CanSkipPatchOnce
+                        ? "更新伺服器檢查失敗，但遊戲大廳可連線。若遊戲已更新，可選擇「本次略過更新檢查並登入」。"
+                        : "Patch Server 檢查失敗，大廳也無法連線。請稍後重新檢查，或至設定執行連線診斷。";
+                }
                 return;
             }
 
@@ -416,9 +434,20 @@ public partial class MainViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private async Task SkipPatchOnceAsync()
+    {
+        if (!CanSkipPatchOnce || IsCheckingUpdate || IsUpdating || IsLoggingIn) return;
+        _skipPatchForThisLogin = true;
+        try { await LoginAsync(); }
+        finally { _skipPatchForThisLogin = false; }
+    }
+
+    [RelayCommand]
     private async Task LoginAsync()
     {
         if (IsUpdating || IsCheckingUpdate || IsLoggingIn) return;
+        if (CanSkipPatchOnce && !_skipPatchForThisLogin && !_settings.SkipPatchServerCheck) return;
+        var skipPatchForLogin = _skipPatchForThisLogin || _settings.SkipPatchServerCheck;
         if (string.IsNullOrWhiteSpace(_settings.GamePath))
         {
             StatusMessage = "請先在設定中指定遊戲路徑";
@@ -526,7 +555,7 @@ public partial class MainViewModel : ObservableObject
             savedPassword,
             launchAccount.AutoOtp,
             accountOtpService,
-            skipPatchServerCheck: _settings.SkipPatchServerCheck);
+            skipPatchServerCheck: skipPatchForLogin);
         var dialogResult = webLoginWindow.ShowDialog();
 
         if (dialogResult == true && !string.IsNullOrEmpty(webLoginWindow.SessionId))

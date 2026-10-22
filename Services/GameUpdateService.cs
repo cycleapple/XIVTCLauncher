@@ -69,6 +69,7 @@ public class GameUpdateService
     {
         State = UpdateState.CheckingVersion;
         var result = new UpdateCheckResult();
+        var contactingPatchServer = false;
 
         try
         {
@@ -100,7 +101,9 @@ public class GameUpdateService
             ReportStatus($"本地版本: {versionInfo}");
 
             // 使用官方 API 檢查版本
+            contactingPatchServer = true;
             var patchResponse = await CheckVersionWithOfficialApiAsync(baseVersion, result.LocalVersions, cancellationToken);
+            contactingPatchServer = false;
 
             if (patchResponse == null)
             {
@@ -131,6 +134,7 @@ public class GameUpdateService
         catch (Exception ex)
         {
             result.ErrorMessage = ex.Message;
+            result.PatchServerCheckFailed = contactingPatchServer;
             State = UpdateState.Failed;
             ReportStatus($"檢查更新失敗: {ex.Message}");
             return result;
@@ -171,7 +175,7 @@ public class GameUpdateService
         ReportStatus($"檢查伺服器版本...");
 
         // 使用獨立的 HttpClient
-        using var patchClient = DownloadHttpClientFactory.Create();
+        using var patchClient = DownloadHttpClientFactory.Create(TimeSpan.FromSeconds(8));
 
         using var request = new HttpRequestMessage(HttpMethod.Post, url);
         request.Headers.Add("X-Hash-Check", "enabled");

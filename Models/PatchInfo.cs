@@ -203,6 +203,7 @@ public class UpdateCheckResult
     /// 錯誤訊息 (如果有)
     /// </summary>
     public string? ErrorMessage { get; set; }
+    public bool PatchServerCheckFailed { get; set; }
 
     private static string FormatBytes(long bytes)
     {

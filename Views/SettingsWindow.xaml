@@ -70,6 +70,8 @@
         <!-- Game Path -->
         <StackPanel Grid.Row="2">
             <TextBlock Text="網路設定" FontWeight="Medium" Margin="0,0,0,8"/>
+            <Button Content="連線診斷…" Click="ConnectionDiagnostics_Click" HorizontalAlignment="Left"
+                    Margin="0,0,0,8" Style="{StaticResource AppSecondaryButton}"/>
             <Button Content="GitHub 下載加速…" Click="GitHubRoutes_Click" HorizontalAlignment="Left"
                     Margin="0,0,0,8" Style="{StaticResource AppSecondaryButton}"/>
             <TextBlock Text="插件清單載入很久，或插件下載很慢？檢測目前的下載連線，嘗試找出速度更好的連線。"

@@ -9,6 +9,9 @@ namespace FFXIVSimpleLauncher.Views;
 
 public partial class SettingsWindow : Window
 {
+    private void ConnectionDiagnostics_Click(object sender, RoutedEventArgs e) =>
+        new ConnectionDiagnosticsWindow(GamePathTextBox.Text.Trim(),
+            (DownloadDnsProvider)Math.Max(0, DownloadDnsComboBox.SelectedIndex)) { Owner = this }.ShowDialog();
     private void GitHubRoutes_Click(object sender, RoutedEventArgs e) => new GitHubRouteWindow { Owner = this }.ShowDialog();
     public LauncherSettings Settings { get; private set; }
     private readonly bool _isFirstRun;
