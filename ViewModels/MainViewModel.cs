@@ -23,6 +23,7 @@ public partial class MainViewModel : ObservableObject
 
     // 更新相關的狀態
     private UpdateCheckResult? _updateCheckResult;
+    private CancellationTokenSource? _updateCheckCancellation;
 
     [ObservableProperty]
     private bool _isLoggingIn;
@@ -123,6 +124,7 @@ public partial class MainViewModel : ObservableObject
         // Subscribe to game update service events
         _gameUpdateService.StatusChanged += status =>
         {
+            if (_settings.SkipPatchServerCheck && !IsUpdating) return;
             StatusMessage = status;
             CurrentPatchName = status;
         };
@@ -288,8 +290,16 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private async Task CheckForUpdatesAsync()
     {
+        if (IsUpdating) return;
+        _updateCheckCancellation?.Cancel();
+        using var checkCancellation = new CancellationTokenSource();
+        _updateCheckCancellation = checkCancellation;
+        var skipPatchServerCheck = _settings.SkipPatchServerCheck;
         if (string.IsNullOrWhiteSpace(_settings.GamePath))
         {
+            _updateCheckCancellation = null;
+            IsCheckingUpdate = false;
+            CanLogin = false;
             StatusMessage = "請先在設定中指定遊戲路徑";
             return;
         }
@@ -297,10 +307,21 @@ public partial class MainViewModel : ObservableObject
         IsCheckingUpdate = true;
         CanLogin = false;
         HasUpdate = false;
+        _updateCheckResult = null;
+        UpdateInfo = string.Empty;
 
         try
         {
-            _updateCheckResult = await _gameUpdateService.CheckForUpdatesAsync(_settings.GamePath);
+            var result = await _gameUpdateService.CheckForUpdatesAsync(_settings.GamePath, skipPatchServerCheck, checkCancellation.Token);
+            checkCancellation.Token.ThrowIfCancellationRequested();
+            _updateCheckResult = result;
+
+            if (!string.IsNullOrEmpty(result.ErrorMessage))
+            {
+                StatusMessage = $"無法確認遊戲版本：{result.ErrorMessage}";
+                CanLogin = result.LocalVersions.ContainsKey(0);
+                return;
+            }
 
             if (_updateCheckResult.NeedsUpdate)
             {
@@ -314,10 +335,11 @@ public partial class MainViewModel : ObservableObject
             {
                 HasUpdate = false;
                 UpdateInfo = string.Empty;
-                StatusMessage = "遊戲版本已是最新";
+                StatusMessage = skipPatchServerCheck ? "已略過 Patch Server 檢查，可嘗試登入（尚未確認遊戲是否為最新版本）" : "遊戲版本已是最新";
                 CanLogin = true;
             }
         }
+        catch (OperationCanceledException) when (checkCancellation.IsCancellationRequested) { }
         catch (Exception ex)
         {
             StatusMessage = $"檢查更新失敗: {ex.Message}";
@@ -326,7 +348,11 @@ public partial class MainViewModel : ObservableObject
         }
         finally
         {
-            IsCheckingUpdate = false;
+            if (ReferenceEquals(_updateCheckCancellation, checkCancellation))
+            {
+                _updateCheckCancellation = null;
+                IsCheckingUpdate = false;
+            }
         }
     }
 
@@ -360,6 +386,7 @@ public partial class MainViewModel : ObservableObject
                 CanLogin = true;
 
                 // 重新檢查更新以確認
+                IsUpdating = false;
                 await CheckForUpdatesAsync();
             }
             else
@@ -391,6 +418,7 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private async Task LoginAsync()
     {
+        if (IsUpdating || IsCheckingUpdate || IsLoggingIn) return;
         if (string.IsNullOrWhiteSpace(_settings.GamePath))
         {
             StatusMessage = "請先在設定中指定遊戲路徑";
@@ -497,7 +525,8 @@ public partial class MainViewModel : ObservableObject
             savedEmail,
             savedPassword,
             launchAccount.AutoOtp,
-            accountOtpService);
+            accountOtpService,
+            skipPatchServerCheck: _settings.SkipPatchServerCheck);
         var dialogResult = webLoginWindow.ShowDialog();
 
         if (dialogResult == true && !string.IsNullOrEmpty(webLoginWindow.SessionId))

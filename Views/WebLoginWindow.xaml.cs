@@ -16,6 +16,7 @@ public class LoginBridge
     private static readonly HttpClient _httpClient = new();
     private readonly WebLoginWindow _window;
     private readonly string _gamePath;
+    private readonly bool _skipPatchServerCheck;
     private readonly OtpService? _otpService;
 
     static LoginBridge()
@@ -25,10 +26,11 @@ public class LoginBridge
         _httpClient.DefaultRequestHeaders.Add("Accept", "*/*");
     }
 
-    public LoginBridge(WebLoginWindow window, string gamePath, OtpService? otpService = null)
+    public LoginBridge(WebLoginWindow window, string gamePath, OtpService? otpService = null, bool skipPatchServerCheck = false)
     {
         _window = window;
         _gamePath = gamePath;
+        _skipPatchServerCheck = skipPatchServerCheck;
         _otpService = otpService;
     }
 
@@ -70,8 +72,8 @@ public class LoginBridge
                 var loginToken = tokenElement.GetString();
                 if (!string.IsNullOrEmpty(loginToken))
                 {
-                    // Step 2: patch-gamever - check game version (REQUIRED before session!)
-                    await CheckGameVersionAsync();
+                    // Step 2: optionally check patch server; normal account/session validation is unchanged.
+                    if (!_skipPatchServerCheck) await CheckGameVersionAsync();
 
                     // Step 3: launcherSession - get sessionId
                     var sessionPayload = JsonSerializer.Serialize(new { token = loginToken });
@@ -185,6 +187,7 @@ public partial class WebLoginWindow : Window
     public string? LastPassword { get; set; }
     private LoginBridge? _bridge;
     private readonly string _gamePath;
+    private readonly bool _skipPatchServerCheck;
     private readonly string? _savedEmail;
     private readonly string? _savedPassword;
     private readonly bool _autoOtp;
@@ -198,9 +201,10 @@ public partial class WebLoginWindow : Window
     /// <param name="savedPassword">Pre-filled password</param>
     /// <param name="autoOtp">Whether auto OTP is enabled</param>
     /// <param name="otpService">Optional OtpService instance (already initialized for the account)</param>
-    public WebLoginWindow(string gamePath, string? savedEmail = null, string? savedPassword = null, bool autoOtp = false, OtpService? otpService = null)
+    public WebLoginWindow(string gamePath, string? savedEmail = null, string? savedPassword = null, bool autoOtp = false, OtpService? otpService = null, bool skipPatchServerCheck = false)
     {
         _gamePath = gamePath;
+        _skipPatchServerCheck = skipPatchServerCheck;
         _savedEmail = savedEmail;
         _savedPassword = savedPassword;
         _autoOtp = autoOtp;
@@ -223,7 +227,7 @@ public partial class WebLoginWindow : Window
             await WebView.EnsureCoreWebView2Async(env);
 
             // Add JavaScript bridge for login (pass OtpService for auto OTP)
-            _bridge = new LoginBridge(this, _gamePath, _otpService);
+            _bridge = new LoginBridge(this, _gamePath, _otpService, _skipPatchServerCheck);
             WebView.CoreWebView2.AddHostObjectToScript("loginBridge", _bridge);
 
             // Intercept requests to launcher.ffxiv.com.tw

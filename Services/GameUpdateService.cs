@@ -47,7 +47,9 @@ public class GameUpdateService
         Cancelled
     }
 
-    public GameUpdateService()
+    public GameUpdateService() : this(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "FFXIVSimpleLauncher", "Patches")) { }
+
+    internal GameUpdateService(string patchDirectory)
     {
         _patchListParser = new PatchListParser();
         _patchListParser.StatusChanged += status => StatusChanged?.Invoke(status);
@@ -57,14 +59,13 @@ public class GameUpdateService
         _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("XIVTCLauncher/1.0");
 
         // 補丁儲存目錄
-        var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        _patchDirectory = new DirectoryInfo(Path.Combine(appData, "FFXIVSimpleLauncher", "Patches"));
+        _patchDirectory = new DirectoryInfo(patchDirectory);
     }
 
     /// <summary>
     /// 檢查更新
     /// </summary>
-    public async Task<UpdateCheckResult> CheckForUpdatesAsync(string gamePath)
+    public async Task<UpdateCheckResult> CheckForUpdatesAsync(string gamePath, bool skipPatchServerCheck = false, CancellationToken cancellationToken = default)
     {
         State = UpdateState.CheckingVersion;
         var result = new UpdateCheckResult();
@@ -87,13 +88,19 @@ public class GameUpdateService
 
             // Startup already checks versions; clean locally even when the update server is offline.
             await Task.Run(() => PatchCacheCleaner.Clean(_patchDirectory.FullName, result.LocalVersions));
+            cancellationToken.ThrowIfCancellationRequested();
+            if (skipPatchServerCheck)
+            {
+                State = UpdateState.Idle;
+                return result;
+            }
 
             // 顯示所有本地版本
             var versionInfo = string.Join(", ", result.LocalVersions.Select(kv => $"ex{kv.Key}={kv.Value}"));
             ReportStatus($"本地版本: {versionInfo}");
 
             // 使用官方 API 檢查版本
-            var patchResponse = await CheckVersionWithOfficialApiAsync(baseVersion, result.LocalVersions);
+            var patchResponse = await CheckVersionWithOfficialApiAsync(baseVersion, result.LocalVersions, cancellationToken);
 
             if (patchResponse == null)
             {
@@ -120,6 +127,7 @@ public class GameUpdateService
             State = UpdateState.Idle;
             return result;
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
         catch (Exception ex)
         {
             result.ErrorMessage = ex.Message;
@@ -141,7 +149,7 @@ public class GameUpdateService
     /// </remarks>
     private async Task<string?> CheckVersionWithOfficialApiAsync(
         string baseVersion,
-        Dictionary<int, string> localVersions)
+        Dictionary<int, string> localVersions, CancellationToken cancellationToken)
     {
         var url = $"http://patch-gamever.ffxiv.com.tw/http/win32/ffxivtc_release_tc_game/{baseVersion}/";
 
@@ -169,7 +177,7 @@ public class GameUpdateService
         request.Headers.Add("X-Hash-Check", "enabled");
         request.Content = new ByteArrayContent(System.Text.Encoding.UTF8.GetBytes(body));
 
-        using var response = await patchClient.SendAsync(request);
+        using var response = await patchClient.SendAsync(request, cancellationToken);
 
         // 嘗試取得最新版本資訊
         string? latestVersion = null;
@@ -188,7 +196,7 @@ public class GameUpdateService
         // 200 OK = 可能需要更新，檢查 X-Patch-Length
         response.EnsureSuccessStatusCode();
 
-        var responseBody = await response.Content.ReadAsStringAsync();
+        var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
 
         // 檢查是否有實際的補丁 URL
         if (!responseBody.Contains("http://patch-dl.ffxiv.com.tw"))

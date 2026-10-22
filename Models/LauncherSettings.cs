@@ -23,6 +23,7 @@ public enum DalamudSourceMode
 public class LauncherSettings
 {
     public DownloadDnsProvider DownloadDns { get; set; } = DownloadDnsProvider.System;
+    public bool SkipPatchServerCheck { get; set; }
     public int SchemaVersion { get; set; } = 2;
 
     // === Multi-Account Support ===

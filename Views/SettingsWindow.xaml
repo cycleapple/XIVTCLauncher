@@ -76,6 +76,9 @@
                        TextWrapping="Wrap" FontSize="12" Foreground="{DynamicResource AppTextSecondaryBrush}"/>
             <Expander Header="進階設定" Margin="0,12,0,20">
                 <StackPanel Margin="0,8,0,0">
+                    <CheckBox x:Name="SkipPatchServerCheckBox" Content="略過遊戲更新檢查（Patch Server）" Margin="0,0,0,8"/>
+                    <TextBlock Text="更新伺服器無法連線時，可略過啟動及登入時的版本檢查，嘗試直接登入。請先確認遊戲已更新；版本不符仍可能無法進入遊戲。儲存後生效，恢復連線後請關閉此選項。"
+                               TextWrapping="Wrap" FontSize="11" Margin="0,0,0,16" Foreground="{DynamicResource AppTextSecondaryBrush}"/>
                     <TextBlock Text="啟動器下載 DNS" FontWeight="Medium" Margin="0,0,0,8"/>
                     <ComboBox x:Name="DownloadDnsComboBox" SelectedIndex="0" Margin="0,0,0,8"
                               AutomationProperties.Name="啟動器下載 DNS">

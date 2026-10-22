@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
-  "tag_name": "v1.17.1",
-  "version": "1.17.1",
-  "name": "XIV TC Launcher v1.17.1",
-  "published_at": "2026-10-21T20:26:02Z",
-  "body": "遊戲更新成功後自動清理已安裝的更新包；啟動時也會依本地版本清理舊包，保留尚未安裝的更新包，避免快取持續佔用空間。",
+  "tag_name": "v1.18.0",
+  "version": "1.18.0",
+  "name": "XIV TC Launcher v1.18.0",
+  "published_at": "2026-10-22T05:02:04Z",
+  "body": "新增「略過遊戲更新檢查（Patch Server）」進階選項，可略過啟動及登入時的更新伺服器請求；預設關閉，保留正常登入驗證與更新包清理。",
   "assets": [
     {
-      "name": "XIVTCLauncher-v1.17.1.zip",
-      "browser_download_url": "https://github.com/cycleapple/XIVTCLauncher/releases/download/v1.17.1/XIVTCLauncher-v1.17.1.zip",
-      "size": 5896844,
-      "sha256": "5a5a6e7d9a3d981d0d89b83c545db0bd1225717ff271dd5010505f63a437ef19"
+      "name": "XIVTCLauncher-v1.18.0.zip",
+      "browser_download_url": "https://github.com/cycleapple/XIVTCLauncher/releases/download/v1.18.0/XIVTCLauncher-v1.18.0.zip",
+      "size": 5897793,
+      "sha256": "83e1f7177fa2008b33712aa70342e31909c2486e6ea703e98facd54236acc8d8"
     }
   ]
 }

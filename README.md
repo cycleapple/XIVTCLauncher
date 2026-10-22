@@ -138,6 +138,10 @@ dotnet publish -c Release -r win-x64 --self-contained false
 
 設定檔儲存於 `%APPDATA%/FFXIVSimpleLauncher/settings.json`
 
+### 略過遊戲更新檢查
+
+更新伺服器無法連線時，可在「設定 → 進階設定」開啟「略過遊戲更新檢查（Patch Server）」。儲存後會略過啟動與登入時的 Patch Server 請求，保留正常帳號登入與本地更新包清理。此選項預設關閉，不代表遊戲已是最新版本；請確認遊戲已更新，伺服器恢復後關閉此選項。版本不相容或登入伺服器無法連線時仍可能無法進入遊戲。
+
 ### 下載 DNS
 
 在「設定 → 進階設定 → 啟動器下載 DNS」選擇「系統預設」、Cloudflare（1.1.1.1）或 Google（8.8.8.8）。

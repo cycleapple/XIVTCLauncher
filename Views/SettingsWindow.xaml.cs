@@ -27,6 +27,7 @@ public partial class SettingsWindow : Window
             DalamudProfiles = settings.DalamudProfiles,
             GamePath = settings.GamePath,
             DownloadDns = settings.DownloadDns,
+            SkipPatchServerCheck = settings.SkipPatchServerCheck,
             EnableDalamud = settings.EnableDalamud,
             DalamudInjectionDelay = settings.DalamudInjectionDelay,
             DalamudSourceMode = settings.DalamudSourceMode,
@@ -41,6 +42,7 @@ public partial class SettingsWindow : Window
 
         // Load settings into UI
         GamePathTextBox.Text = Settings.GamePath;
+        SkipPatchServerCheckBox.IsChecked = Settings.SkipPatchServerCheck;
         DownloadDnsComboBox.SelectedIndex = Enum.IsDefined(Settings.DownloadDns) ? (int)Settings.DownloadDns : 0;
         EnableDalamudCheckBox.IsChecked = Settings.EnableDalamud;
         InjectionDelayTextBox.Text = Settings.DalamudInjectionDelay.ToString();
@@ -205,6 +207,7 @@ public partial class SettingsWindow : Window
 
         Settings.GamePath = gamePath;
         Settings.DownloadDns = (DownloadDnsProvider)DownloadDnsComboBox.SelectedIndex;
+        Settings.SkipPatchServerCheck = SkipPatchServerCheckBox.IsChecked == true;
         Settings.EnableDalamud = EnableDalamudCheckBox.IsChecked ?? false;
         Settings.DalamudInjectionDelay = int.TryParse(InjectionDelayTextBox.Text, out var delay) ? delay : 0;
         Settings.DalamudSourceMode = AutoDownloadRadio.IsChecked == true
